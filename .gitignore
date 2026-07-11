@@ -1,0 +1,22 @@
+# Trained model weights: ship the two production models, ignore any others
+# (experimental checkpoints, fine-tunes, etc.).
+*.pt
+!solver/securimage_model.pt
+!solver/model.pt
+
+# Scraped captcha images and evaluation data — NOT distributed (they target live
+# third-party endpoints). Regenerate synthetic data with the renderer instead.
+captcha_2/
+corpus/
+real_test/
+test*.png
+*.png
+
+# scratch / logs / caches
+scratchpad*
+*.log
+__pycache__/
+*.pyc
+.DS_Store
+.venv/
+venv/

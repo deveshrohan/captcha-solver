@@ -2,9 +2,9 @@
 
     python3 eval_gst.py [model.pt] [labels.json]
 
-Prints exact-match and per-digit accuracy, plus every disagreement so the
-labels themselves can be adjudicated (the middle digits are fisheye-magnified
-and genuinely hard to read by eye).
+Prints exact-match and per-digit accuracy, plus every disagreement. Those are
+worth adjudicating against the image rather than trusting: on the first pass,
+10 of 11 apparent model errors turned out to be labelling mistakes.
 """
 import json
 import os
@@ -17,13 +17,11 @@ from solver import gst as G
 
 MODEL = sys.argv[1] if len(sys.argv) > 1 else "solver/gst_model.pt"
 LABELS = sys.argv[2] if len(sys.argv) > 2 else "gst_labels.json"
-UNCERTAIN = "gst_labels_uncertain.json"
 
 
 def main():
     labels = json.load(open(LABELS))
     items = [(p, l) for p, l in sorted(labels.items()) if os.path.exists(p)]
-    flagged = set(json.load(open(UNCERTAIN))) if os.path.exists(UNCERTAIN) else set()
 
     model = G.GstCRNN()
     model.load_state_dict(torch.load(MODEL, map_location="cpu"))
@@ -46,8 +44,7 @@ def main():
     if bad:
         print(f"\ndisagreements ({len(bad)}):")
         for p, l, pr, c in sorted(bad, key=lambda x: x[3]):
-            mark = "  <- label flagged uncertain" if p in flagged else ""
-            print(f"  {os.path.basename(p):12s} label={l}  pred={pr}  conf={c:.3f}{mark}")
+            print(f"  {os.path.basename(p):12s} label={l}  pred={pr}  conf={c:.3f}")
 
     lo = sorted(zip(confs, [p for p, _ in items]))[:5]
     print("\nlowest-confidence reads:")

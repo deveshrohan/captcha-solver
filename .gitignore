@@ -14,10 +14,16 @@ corpus/
 real_test/
 gst_raw/
 mca_raw/
+epfo_raw/
+samples/
 test*.png
 *.png
 # ...but the bundled fonts the renderers need are part of the source
 !fonts/*.ttf
+
+# session cookie jars written by the downloaders
+.cookies
+*.cookies
 
 # scratch / logs / caches
 scratchpad*
@@ -33,4 +39,3 @@ gst_adjudicate.html
 mca_adjudicate.html
 epfo_raw/
 selfimprove_state.json
-mca_remaining8.png

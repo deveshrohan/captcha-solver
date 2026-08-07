@@ -274,7 +274,7 @@ blob ~ a counter. Both blobs start `0x6000…`, and `bm_sv`'s embeds `17af3b17`
 python3 download_mca.py 400 mca_raw  # no cookie needed
 python3 train_mca.py 45              # synthetic-only -> solver/mca_model.pt
 python3 finetune_mca.py 25           # fine-tune on hand-labeled reals
-python3 eval_mca.py                  # score against mca_labels.json
+python3 eval_mca.py                  # scores the held-out split (--all for every label)
 ```
 
 ### The font could not be identified — so train on real labels instead
@@ -450,6 +450,7 @@ minted token, and re-mints on expiry.
 ```bash
 python3 download_epfo.py 400 epfo_raw
 python3 train_epfo.py 35             # synthetic-only -> solver/epfo_model.pt
+python3 eval_epfo.py                 # score against the held-out split
 ```
 
 ### Results (44 held-out real captchas, trained on synthetic only)
@@ -531,7 +532,7 @@ before fetching again. The GST captcha behaves the same way.
 - `train_securimage.py`, `train_gst.py`, `train_mca.py`, `train_epfo.py`,
   `train.py`, `gen_corpus.py`, `finetune_gst.py`, `finetune_mca.py`
 - `selfimprove.py` — drift detection and gated self-training
-- `eval_securimage.py`, `eval_gst.py`, `eval_mca.py`
+- `eval_securimage.py`, `eval_gst.py`, `eval_mca.py`, `eval_epfo.py`
 - `download_gst.py`, `download_mca.py`, `download_epfo.py`, `download_securimage.py`
 - `examples/ecourts_securimage.py`
 - `fonts/AHGBold.ttf` — Alte Haas Grotesk Bold (via the Securimage project)

@@ -1,11 +1,9 @@
-"""Score the MCA reader against the hand-labeled real captchas.
+"""Score the EPFO reader against the hand-labeled real captchas.
 
-    python3 eval_mca.py [model.pt] [labels.json]
+    python3 eval_epfo.py [model.pt] [labels.json]
 
-Also breaks out how much of the residual error is the charset's inherent
-homoglyph ambiguity (`0`/`O`, `1`/`l`/`I`), which no reader can resolve from the
-glyph alone — a caller that can retry, or that treats those classes as
-interchangeable, effectively sees the higher number.
+EPFO excludes 0, I, N and O from its charset, so unlike MCA it has no homoglyph
+pairs at all — the lenient and strict numbers are identical by construction.
 """
 import json
 import os
@@ -15,10 +13,10 @@ from collections import Counter
 import numpy as np
 import torch
 
-from solver import mca as M
+from solver import epfo as M
 
-MODEL = sys.argv[1] if len(sys.argv) > 1 else "solver/mca_model.pt"
-LABELS = sys.argv[2] if len(sys.argv) > 2 else "mca_labels.json"
+MODEL = sys.argv[1] if len(sys.argv) > 1 else "solver/epfo_model.pt"
+LABELS = sys.argv[2] if len(sys.argv) > 2 else "epfo_labels.json"
 
 HOMOGLYPHS = [set("0O"), set("1lI"), set("5S"), set("2Z"), set("9g")]
 
@@ -29,7 +27,7 @@ def same_class(a, b):
     return any(a in g and b in g for g in HOMOGLYPHS)
 
 
-SPLIT = "mca_split.json"
+SPLIT = "epfo_split.json"
 
 
 def main():
@@ -42,7 +40,7 @@ def main():
         test = set(json.load(open(SPLIT))["test"])
         items = [(p, l) for p, l in items if p in test]
         print("scoring the held-out test split (pass --all to score every label)\n")
-    model = M.McaCRNN()
+    model = M.EpfoCRNN()
     model.load_state_dict(torch.load(MODEL, map_location="cpu"))
     model.eval()
 

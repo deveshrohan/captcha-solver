@@ -1,9 +1,9 @@
 # captcha-solver
 
-Local, synthetic-trained readers for two PHP-GD captcha styles. `solve.py`
-auto-routes by image size and runs on CPU with the included weights.
+Local, synthetic-trained captcha readers. `solve.py` auto-routes by image size
+and runs on CPU with the included weights.
 
-> Ships code, the synthetic data generator, and pretrained weights — no captcha
+> Ships code, the synthetic data generators, and pretrained weights — no captcha
 > images (models are trained on synthetic data only). Use only against services
 > you are authorized to automate. Endpoint URLs are placeholders; set
 > `SECURIMAGE_URL` to your own. MIT licensed.
@@ -12,6 +12,8 @@ auto-routes by image size and runs on CPU with the included weights.
 |---|---|---|---|---|
 | numeric | 120×40 | 6 digits, thin `#ccc` lines | threshold + segment + per-digit CNN | 100% (48/48 digits) |
 | securimage | 215×80 | 6 lowercase-alnum, wavy warp | CRNN+CTC, faithful renderer, length-6 beam | 98.8% exact (81/82) |
+| gst | 182×50 | 6 digits, hatch grid + fisheye | CRNN+CTC on RGB, SimpleCaptcha port | 99.0% exact (97/98), 99.83% digits |
+| mca | 200×80 | 6 mixed-case alnum, line noise | exact ink mask → CRNN+CTC + real fine-tune | 75.0% exact single-shot, ~97% within 3 fetches |
 
 ```bash
 pip install torch numpy pillow       # inference deps (scipy is training-only)
@@ -101,7 +103,294 @@ length 6, a low-confidence read can trigger a retry on a fresh image.
 
 (Labeled real evaluation images are not included in this repo.)
 
-### Programmatic use
+---
+
+## GST portal captcha (182×50)
+
+Six black digits over a grey gradient, crossed by a black hatch grid and one red
+curve. Unlike the two above this is **not** PHP-GD: there is no `pHYs` chunk and
+the zlib header is `78 da` (`CINFO=7`, best-compression), the signature of Java's
+`ImageIO` writer.
+
+### Identifying the generator
+
+The image is produced by **SimpleCaptcha** (Java, `nl.captcha`). Three
+independent measurements pin it down:
+
+1. **Grid pitch.** `FishEyeGimpyRenderer` computes
+   `hspace = height/(height/7+1)` and `vspace = width/(width/7+1)`. For 182×50
+   that is exactly `6` and `6` — the measured pitch — and the lines land on
+   `x = 6,12,…,180`, `y = 6,12,…,48`, exactly as observed.
+2. **A circular warp.** The same renderer then applies a fisheye inside a circle
+   of radius `ranInt(width/4, width/3)` = 45..60 centred on (91, 25). Real
+   captchas have *perfectly straight* grid lines outside that circle and warped
+   ones inside — which is why whole-column blackness holds at `x ≤ 36` and
+   `x ≥ 144` but breaks in between.
+3. **The background.** `GradiatedBackgroundProducer` paints a Java
+   `GradientPaint` from (0,0) `DARK_GRAY` to (w,h) `WHITE`, i.e.
+   `64 + 191·(x·w + y·h)/(w²+h²)`. Predicted vs measured agrees to a mean
+   absolute error of ~0.9 grey levels *at every radius* — which also proves the
+   background is composited **behind** the already-fisheyed ink layer rather than
+   being warped with it, matching `Captcha.Builder.build()`.
+
+Layer order, therefore: transparent layer ← text ← red curve ← grid + fisheye;
+then the gradient behind; then a 1px border on top. `solver/gst.py` ports this,
+including Java's `(int)` truncation inside the fisheye resample.
+
+Two details are *not* stock SimpleCaptcha and are fitted from real samples:
+
+- the red curve spans the full width with **no antialiasing** (real images
+  contain exactly one non-grey colour, `#ff0000`), whereas stock
+  `CurvedLineNoiseProducer` spans `0.1w..0.9w` with antialiasing on;
+- the font is a Verdana-lineage bold face, not the stock Arial/Courier.
+
+### The font is the one open variable
+
+The server is Linux, so the Java font name resolves through fontconfig to
+whatever is installed. Matching real glyph shapes (IoU over the pristine strip
+left of the fisheye circle, scoring only pixels the grid never touches) ranks
+**DejaVu Sans Condensed Bold** first (0.775), then DejaVu Sans Bold / Tahoma
+Bold / Verdana Bold (~0.74). Rather than bet on one face, training randomises
+over that shortlist.
+
+The *geometry*, by contrast, is measured and pinned: after undoing the fisheye
+and masking the grid, real ink spans `x 13..125` (112px for 6 digits) at height
+28 with baseline 37. Each face is auto-scaled to reproduce a mean digit ink width
+of 18.67px, and the pen advances by each glyph's **ink** width (not its advance
+width) — which is what makes real digits sit tightly packed.
+
+### Endpoint behaviour (measured)
+
+- **`?rnd=` is cache-busting, not a seed.** The same `rnd` requested twice
+  returns two *different* images, and omitting it entirely still returns a valid
+  captcha. Nothing about the image depends on the value.
+- **The captcha is session-bound via `CaptchaCookie`.** Every response sets
+  `CaptchaCookie=<32 hex>` (Domain=`.gst.gov.in`, `Secure`, `HttpOnly`) and the
+  value rotates on *every* GET — three successive calls through one jar gave
+  three distinct cookies. (That rotation is measured; that the server keys the
+  expected answer off the newest cookie is the natural reading of it, but
+  confirming it needs a real form submission, which I did not do.) Treat only
+  the last image fetched as valid, and fetch and post through one cookie jar.
+- `TS0134d082` is the F5 BIG-IP ASM (WAF) cookie. That WAF rejects a *spoofed*
+  browser UA (a bare `Mozilla/5.0` without matching client hints returns a
+  200-with-HTML "Request Rejected" page); plain curl's default UA is accepted.
+
+```bash
+python3 download_gst.py 400 gst_raw  # plain curl; a spoofed browser UA trips the WAF
+python3 train_gst.py 55              # synthetic-only -> solver/gst_model.pt
+python3 finetune_gst.py 12           # self-training on unlabeled reals
+python3 eval_gst.py                  # score against gst_labels.json
+```
+
+### Results (98 real captchas)
+
+| model | exact | per-digit |
+|---|---|---|
+| synthetic-only (no real image used at all) | 94/98 (95.9%) | 584/588 (99.32%) |
+| + self-training on unlabeled reals, **held-out test half** | **49/49 (100%)** | 294/294 (100%) |
+| + self-training, all 98 | 97/98 (99.0%) | 587/588 (99.83%) |
+
+**The labels were the bottleneck, not the model.** These 98 were first labeled by
+reading the fisheye-inverted images by eye, and 10 were flagged at the time as
+not confidently readable. Scoring against those first-pass labels put the model
+at 85.7% exact. Every disagreement was then re-examined against the image at 8×
+zoom and adjudicated by the repo owner — and **10 of the 11 were labeling
+mistakes, not model errors**. Re-scoring against the corrected labels moves the
+model from 85.7% to 99.0%.
+
+The single remaining error is `g0004`: truth `222646`, read as `222546`, one
+digit at the fisheye's point of maximum magnification. Notably the adjudicated
+truth there matched *neither* the original label (`227646`) nor the model
+(`222546`) — evidence the adjudication was an independent read rather than a
+rubber-stamp of the prediction.
+
+Two caveats worth keeping: 49/49 on the test half is a small sample (95% Wilson
+CI `[92.7, 100]`), so read it as "no observed errors", not as proof of
+perfection; and the adjudication UI displayed the model's guess alongside the
+image, which is not a blind protocol even though the `g0004` result argues
+against anchoring. The epoch was selected on the dev half using the
+pre-correction labels.
+
+The one residual error sits at the fisheye's centre, where the image is
+magnified ~4× and stroke detail is destroyed — the same region that produced
+most of the *labeling* difficulty. The distortion is invertible (`undistort` in
+`solver/gst.py`), which is what made the images readable enough to label and
+adjudicate at all; inference still reads the raw image, because the per-image
+radius estimator is biased by ~3px (Java truncates where the inverse rounds).
+
+---
+
+## MCA portal captcha (200×80)
+
+Six mixed-case alphanumeric characters over a dense field of straight grey noise
+lines. This one is by far the easiest, for a structural reason worth stating:
+the image contains **exactly three colours** — background 230, noise 150, ink 0 —
+with no antialiasing, and the noise is drawn *under* the text. So an exact
+equality test on pure black recovers every glyph whole and unbroken, and the
+noise cannot affect recognition at all. The generator does not model it.
+
+What remains is genuinely variable: each character gets its own size and
+weight/slant, with cap heights spanning 12–21px *within a single captcha*, so the
+reader must be scale-invariant. `solver/mca.py` renders text only — random
+DejaVu Sans face per character, per-image base size with per-character jitter —
+onto the measured geometry (baseline y≈50, start x≈66) and reads it with a
+CRNN+CTC over 62 classes.
+
+### Endpoint behaviour: the Akamai cookies are a red herring
+
+The endpoint returns `multipart/mixed` with both a PNG and a WAV (the
+accessibility audio captcha); `download_mca.py` splits them. It sits behind
+Akamai Bot Manager, and the obvious assumption — that the `ak_bmsc` / `bm_sv`
+tokens are what let you through — is **wrong**. Ablating one cookie at a time:
+
+| request | result |
+|---|---|
+| all cookies | 200 |
+| drop `ak_bmsc` | 200 |
+| drop `bm_sv` | 200 |
+| **no cookies at all** | **200** |
+
+What actually gates it is the *header fingerprint*. Dropping one header at a
+time from a complete Chrome-XHR set, only two are individually fatal:
+`user-agent` and `referer` (and the referer must be an mca.gov.in URL —
+example.com is rejected). But those two alone still fail: Akamai scores the set
+as a whole. Adding headers back one at a time, it took 8 of them (`accept`,
+`accept-language`, the three `sec-ch-ua*` client hints and `sec-fetch-dest`)
+before it returned 200 — that count is specific to the order I added them in, so
+read it as "most of a real Chrome XHR's headers", not as a minimal basis.
+
+So **no browser session is needed** and `MCA_COOKIE` is optional. Sporadic 403
+bursts are rate limiting, not cookie expiry — the downloader backs off.
+
+For reference, the tokens themselves are `~`-separated and opaque:
+`ak_bmsc` = 32-hex GUID ~ a 30-char all-zero flag field ~ a 400-char base64
+payload that decodes to a 300-byte AES blob; `bm_sv` = 32-hex GUID ~ 192-byte
+blob ~ a counter. Both blobs start `0x6000…`, and `bm_sv`'s embeds `17af3b17`
+— the serving edge node, `23.175.59.23`, the same address Akamai prints in its
+`Reference #18.17af3b17.…` denial pages.
+
+```bash
+python3 download_mca.py 400 mca_raw  # no cookie needed
+python3 train_mca.py 45              # synthetic-only -> solver/mca_model.pt
+python3 finetune_mca.py 25           # fine-tune on hand-labeled reals
+python3 eval_mca.py                  # score against mca_labels.json
+```
+
+### The font could not be identified — so train on real labels instead
+
+Segmenting glyphs out of the labeled reals and matching them against 30+
+candidate faces gives a best mean IoU of only 0.67 (Arial Bold) with no face
+clearly winning, and rendering aliased rather than antialiased barely moves it
+(0.664 → 0.670). Side by side the real strokes are consistently *thinner* than
+the bold templates. The face remains unidentified.
+
+Since MCA ink is exactly separable, the captchas are trivial to read by eye and
+therefore cheap to label in bulk. 184 were hand-labeled and split
+110 train / 30 dev / 44 test (`finetune_mca.py`); the test split is never
+trained on and never used to pick the epoch.
+
+### Results (44 held-out real captchas)
+
+| model | exact | per-character |
+|---|---|---|
+| synthetic-only | 15/44 (34.1%) | 214/264 (81.1%) |
+| + fine-tuned on 110 real labels | 28/44 (63.6%) | 247/264 (93.6%) |
+| + fine-tuned on 230 real labels | 33/44 (75.0%) | 250/264 (94.7%) |
+| **+ fine-tuned on 321 real labels** | **33/44 (75.0%)** | **250/264 (94.7%)** |
+
+Labelling is **saturated**: going from 230 to 321 training images (395 of the 397
+corpus captchas are now labelled) moved neither metric by a single character.
+The first doubling, 110 → 230, was worth +7 points; the next 40% was worth zero.
+Whatever is left is not a data-volume problem.
+
+The portal validates **case-sensitively**, so the strict column is the only one
+that counts. Doubling the labelled training set moved exact accuracy 63.6% →
+70.5%; the CIs (`[48.9, 76.2]` vs `[55.8, 81.8]`) still overlap at n=44, but the
+direction is consistent and per-character improved too. The 44-image test set is
+pinned by filename in `mca_split.json` rather than re-derived from a seed, so
+adding training labels cannot silently reshuffle it.
+
+### Skip the unreadable ones instead of guessing
+
+`l` and `I` are both plain vertical bars at the same height, so a read
+containing one is close to a coin flip — and since the portal is
+case-sensitive, guessing costs a failed submission. Measured on held-out reals:
+
+| | share of captchas | exact accuracy |
+|---|---|---|
+| read contains `l` or `I` | 16% | **28.6%** |
+| read contains neither | 84% | **83.8%** |
+
+So the right move is not a better model — more labels demonstrably do not help — but a cheaper decision: **throw that
+captcha away and fetch another.** `solve_with_retry(..., avoid_ambiguous=True)`
+(the default) does this — it refetches whenever the read contains a character
+from `api.AMBIGUOUS[kind]`. Cost is ~1.4 fetches per solve:
+
+| fetches | cumulative success |
+|---|---|
+| 1 | 68.2% |
+| 2 | 89.9% |
+| 3 | **96.8%** |
+| 4 | 99.0% |
+
+That turns a 75% single-shot reader into a ~97% pipeline without touching the
+model. Captchas are free to re-request, so the only cost is latency.
+
+Of the residual character errors, roughly a third are these bar confusions, and
+the rest split between case slips (`s`→`S`, `W`→`w`, `V`→`v` — height-resolvable,
+so more labels keep eating them) and genuine shape errors. ~94 corpus images
+remain unlabelled; `mca_ambiguous.json` lists the labels that still rest on an
+unresolved `l`/`I` call, so training can exclude them rather than learn a guess.
+
+Most of the residual error is case and homoglyph collisions: `I`↔`l`, `s`↔`S`,
+`c`↔`C`, `O`↔`0`, `V`↔`v`.
+
+### Case is *partly* recoverable — via relative height
+
+An earlier version of this note claimed case was unresolvable, on the grounds
+that `s` and `S` are the same shape at different scales. That is true of an
+isolated glyph and false in context: every character sits on one shared baseline
+at one shared font size, so a lowercase `s` reaches only x-height while a
+capital `S` reaches cap-height. Measured over the labelled glyphs, relative
+height (glyph height ÷ tallest glyph in the same image) separates:
+
+| pair | lowercase | uppercase | 1-D accuracy |
+|---|---|---|---|
+| o/O | 0.737 | 0.990 | 100% |
+| c/C | 0.726 | 0.971 | 100% |
+| x/X | 0.748 | 0.973 | 100% |
+| u/U | 0.751 | 0.953 | 100% |
+| s/S | 0.760 | 0.943 | 95% |
+| k/K, l/I, 0/O, 1/l | ~1.0 | ~1.0 | 38–61% (chance) |
+
+The split is exactly what typography predicts: the cue exists for x-height
+letters and is genuinely absent for full-height ones (`k`/`K` and `l`/`I` are
+both ascender-height; `0`/`O` and `1`/`l` are both full-height). So `I`↔`l` and
+`O`↔`0` really are irreducible; the x-height cases are not.
+
+**The generator was destroying this cue.** Within a real image the height spread
+among full-height glyphs is only `(max-min)/mean = 0.044` — font size is
+essentially constant per image, and what looks like per-character size
+randomisation is mostly cap-height vs x-height. The generator was jittering size
+±3pt, giving a spread of 0.208 — **4.8× too wide** — so in training a lowercase
+`o` could out-tower an uppercase `O` and the model correctly learned to ignore
+height. `make_mask` now scales by `base × (1 + N(0, 0.015))`, matching reality.
+
+Retraining on the corrected generator cut pure-case errors from **7 to 4**, as
+predicted, but genuine shape errors drifted 5 → 7, so the totals were flat:
+28/44 vs 29/44 exact, 247/264 vs 246/264 characters. At n=44 those CIs overlap
+almost entirely (`[48.9, 76.2]` vs `[51.1, 78.1]`) — a one-image swing is noise.
+Separating a 5-point difference here would need ~700 labelled test images.
+
+**The reliable lever from here is more labels, not more renderer archaeology:**
+110 training images is thin for 62 classes, and the genuine-shape errors
+(`C`→`O`, `a`→`9`, `r`→`m`) are the kind that more real data fixes. Also worth
+confirming whether the portal validates case-insensitively — if it does, the
+case column stops mattering and the effective rate is the case-insensitive row.
+
+---
+
+## Programmatic use
 
 `solver/api.py` is a CPU, in-process API — no network, only needs
 torch/numpy/pillow (scipy is training-only). See `examples/ecourts_securimage.py`.
@@ -109,7 +398,7 @@ torch/numpy/pillow (scipy is training-only). See `examples/ecourts_securimage.py
 ```python
 from solver.api import warmup, solve_bytes, solve_with_retry
 
-warmup()                                     # load the model once at startup
+warmup(securimage=True, gst=True)            # load models once at startup
 text, conf, kind = solve_bytes(image_bytes)  # ('6yyzch', 0.998, 'securimage')
 
 def fetch():                                 # re-request on the SAME session
@@ -117,16 +406,24 @@ def fetch():                                 # re-request on the SAME session
 code, conf, kind, tries = solve_with_retry(fetch, min_conf=0.90, kind="securimage")
 ```
 
+Routing is by native image size (each captcha has a distinct one): 120×40 →
+`gstat`, 182×50 → `gst`, 200×80 → `mca`, 215×80 → `securimage`.
+
 Securimage is **session-bound**: each captcha request rotates the server-side
 code, so only the most recently fetched captcha is valid to submit.
 `solve_with_retry` returns the last read via the same `fetch` session — submit it
-before fetching again.
+before fetching again. The GST captcha behaves the same way.
 
 ---
 
 ## Layout
 
 - `solver/` — renderers, models, decode, pipeline, `api.py`
-- `train_securimage.py`, `train.py`, `gen_corpus.py`, `eval_securimage.py`
+- `train_securimage.py`, `train_gst.py`, `train_mca.py`, `train.py`,
+  `gen_corpus.py`, `finetune_gst.py`, `finetune_mca.py`
+- `eval_securimage.py`, `eval_gst.py`, `eval_mca.py`
+- `download_gst.py`, `download_mca.py`, `download_securimage.py`
 - `examples/ecourts_securimage.py`
 - `fonts/AHGBold.ttf` — Alte Haas Grotesk Bold (via the Securimage project)
+- `fonts/DejaVu*.ttf` — DejaVu fonts (Bitstream Vera / Arev licence,
+  `fonts/DejaVu-LICENSE`), used by the GST and MCA renderers

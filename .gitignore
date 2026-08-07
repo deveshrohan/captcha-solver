@@ -1,16 +1,22 @@
-# Trained model weights: ship the two production models, ignore any others
+# Trained model weights: ship the production models, ignore any others
 # (experimental checkpoints, fine-tunes, etc.).
 *.pt
 !solver/securimage_model.pt
 !solver/model.pt
+!solver/gst_model.pt
+!solver/mca_model.pt
 
 # Scraped captcha images and evaluation data — NOT distributed (they target live
 # third-party endpoints). Regenerate synthetic data with the renderer instead.
 captcha_2/
 corpus/
 real_test/
+gst_raw/
+mca_raw/
 test*.png
 *.png
+# ...but the bundled fonts the renderers need are part of the source
+!fonts/*.ttf
 
 # scratch / logs / caches
 scratchpad*
@@ -20,3 +26,7 @@ __pycache__/
 .DS_Store
 .venv/
 venv/
+
+# generated label-adjudication page (embeds captcha images)
+gst_adjudicate.html
+mca_adjudicate.html

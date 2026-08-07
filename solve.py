@@ -1,49 +1,31 @@
 """CLI: solve captcha image(s), auto-routing by captcha type.
 
   120x40  -> gstat numeric captcha   (threshold + segment + per-digit CNN)
+  182x50  -> GST portal              (CRNN + CTC, RGB, length-6 beam)
+  200x80  -> MCA portal              (exact ink mask -> CRNN + CTC)
   215x80  -> eCourts securimage      (CRNN + CTC whole-image reader)
 
 Usage: python solve.py IMAGE [IMAGE ...]
 """
 import sys
-import torch
+
 from PIL import Image
 
-from solver.model import DigitCNN
-from solver.pipeline import solve_image
-from solver import securimage as S
-
-GSTAT_MODEL = "solver/model.pt"
-SECURIMAGE_MODEL = "solver/securimage_model.pt"
-
-
-def _load_gstat():
-    m = DigitCNN(); m.load_state_dict(torch.load(GSTAT_MODEL, map_location="cpu")); m.eval()
-    return m
-
-
-def _load_securimage():
-    m = S.SecurimageCRNN(); m.load_state_dict(torch.load(SECURIMAGE_MODEL, map_location="cpu")); m.eval()
-    return m
+from solver.api import solve_bytes
 
 
 def main(argv):
     if not argv:
         print("usage: python solve.py IMAGE [IMAGE ...]")
         return 1
-    gstat = securi = None
     for p in argv:
+        try:
+            text, conf, kind = solve_bytes(p)
+        except FileNotFoundError:
+            print(f"{p}\t<missing file>")
+            continue
         w, h = Image.open(p).size
-        if w > 180:                                            # securimage (215x80)
-            if securi is None:
-                securi = _load_securimage()
-            text, conf = S.predict_ctc_beam(securi, S.load_real(p)[None], "cpu")  # length-6 beam
-            print(f"{p}\t{text[0]}\t[securimage]\t(char conf {conf[0]:.2f})")
-        else:                                                   # gstat (120x40)
-            if gstat is None:
-                gstat = _load_gstat()
-            text, conf = solve_image(gstat, p)
-            print(f"{p}\t{text}\t[gstat]\t(min digit conf {min(conf):.2f})")
+        print(f"{p}\t{text}\t[{kind} {w}x{h}]\t(conf {conf:.2f})")
     return 0
 
 

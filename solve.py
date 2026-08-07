@@ -1,6 +1,7 @@
 """CLI: solve captcha image(s), auto-routing by captcha type.
 
   120x40  -> gstat numeric captcha   (threshold + segment + per-digit CNN)
+  150x50  -> EPFO portal             (exact background subtraction -> CRNN + CTC)
   182x50  -> GST portal              (CRNN + CTC, RGB, length-6 beam)
   200x80  -> MCA portal              (exact ink mask -> CRNN + CTC)
   215x80  -> eCourts securimage      (CRNN + CTC whole-image reader)

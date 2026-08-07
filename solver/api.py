@@ -26,6 +26,7 @@ import numpy as np
 import torch
 from PIL import Image
 
+from solver import epfo as E
 from solver import gst as G
 from solver import mca as M
 from solver import securimage as S
@@ -38,12 +39,14 @@ _SECURIMAGE_MODEL = _os.path.join(_HERE, "securimage_model.pt")
 _GSTAT_MODEL = _os.path.join(_HERE, "model.pt")
 _GST_MODEL = _os.path.join(_HERE, "gst_model.pt")
 _MCA_MODEL = _os.path.join(_HERE, "mca_model.pt")
+_EPFO_MODEL = _os.path.join(_HERE, "epfo_model.pt")
 
 _lock = threading.Lock()
 _securi = None
 _gstat = None
 _gst = None
 _mca = None
+_epfo = None
 
 # (width, height) -> kind. Every supported captcha has a distinct native size.
 _SIZES = {
@@ -51,6 +54,7 @@ _SIZES = {
     (182, 50): "gst",
     (200, 80): "mca",
     (120, 40): "gstat",
+    (150, 50): "epfo",
 }
 
 # Characters that carry no distinguishing information in a given captcha style,
@@ -115,7 +119,19 @@ def _load_mca():
     return _mca
 
 
-def warmup(securimage=True, gstat=False, gst=False, mca=False):
+def _load_epfo():
+    global _epfo
+    if _epfo is None:
+        with _lock:
+            if _epfo is None:
+                m = E.EpfoCRNN()
+                m.load_state_dict(torch.load(_EPFO_MODEL, map_location="cpu"))
+                m.eval()
+                _epfo = m
+    return _epfo
+
+
+def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False):
     """Pre-load models at scraper startup so the first live solve isn't slow.
     Also runs one dummy forward to trigger lazy CUDA/oneDNN init. Call once."""
     if securimage:
@@ -132,6 +148,10 @@ def warmup(securimage=True, gstat=False, gst=False, mca=False):
         m = _load_mca()
         with torch.no_grad():
             m(torch.zeros(1, 1, M.IN_H, M.IN_W))
+    if epfo:
+        m = _load_epfo()
+        with torch.no_grad():
+            m(torch.zeros(1, 1, E.IN_H, E.IN_W))
 
 
 def _to_pil(image):
@@ -203,6 +223,15 @@ def solve_mca(image):
     return text[0], float(conf[0])
 
 
+def solve_epfo(image):
+    """Solve an EPFO portal captcha (150x50, 5 uppercase-alnum chars).
+    Returns (text, confidence)."""
+    pil = _to_pil_rgb(image)
+    arr = E.load_real(pil)[None]
+    text, conf = E.predict(_load_epfo(), arr, "cpu")
+    return text[0], float(conf[0])
+
+
 def solve_bytes(image, kind=None):
     """Auto-route and solve. Returns (text, confidence, kind).
 
@@ -219,6 +248,8 @@ def solve_bytes(image, kind=None):
         text, conf = solve_gst(pil)
     elif kind == "mca":
         text, conf = solve_mca(pil)
+    elif kind == "epfo":
+        text, conf = solve_epfo(pil)
     elif kind == "gstat":
         text, conf = solve_gstat(image if isinstance(image, str) else pil.convert("L"))
     else:

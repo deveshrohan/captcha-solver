@@ -5,6 +5,7 @@
 !solver/model.pt
 !solver/gst_model.pt
 !solver/mca_model.pt
+!solver/epfo_model.pt
 
 # Scraped captcha images and evaluation data — NOT distributed (they target live
 # third-party endpoints). Regenerate synthetic data with the renderer instead.
@@ -30,3 +31,6 @@ venv/
 # generated label-adjudication page (embeds captcha images)
 gst_adjudicate.html
 mca_adjudicate.html
+epfo_raw/
+selfimprove_state.json
+mca_remaining8.png

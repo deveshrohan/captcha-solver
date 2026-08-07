@@ -14,6 +14,7 @@ and runs on CPU with the included weights.
 | securimage | 215×80 | 6 lowercase-alnum, wavy warp | CRNN+CTC, faithful renderer, length-6 beam | 98.8% exact (81/82) |
 | gst | 182×50 | 6 digits, hatch grid + fisheye | CRNN+CTC on RGB, SimpleCaptcha port | 99.0% exact (97/98), 99.83% digits |
 | mca | 200×80 | 6 mixed-case alnum, line noise | exact ink mask → CRNN+CTC + real fine-tune | 75.0% exact single-shot, ~97% within 3 fetches |
+| epfo | 150×50 | 5 alnum, gradient background | background subtraction → sprite-exact synth → CRNN+CTC | **100% exact (44/44)** |
 
 ```bash
 pip install torch numpy pillow       # inference deps (scipy is training-only)
@@ -390,6 +391,114 @@ case column stops mattering and the effective rate is the case-insensitive row.
 
 ---
 
+## EPFO portal captcha (150×50)
+
+Five characters on a grey gradient with no noise lines at all. Two measurements
+turn this from a modelling problem into a reconstruction problem.
+
+### The background is a constant
+
+The image is entirely greyscale and the background is a **fixed vertical
+gradient that is byte-identical in every captcha** — 255 at y=0, falling to 128
+at y=25, back to 249 at y=49, constant along each row (verified against 40
+samples: zero variation). So ink extraction is exact subtraction rather than a
+threshold heuristic.
+
+### The font is a sprite sheet, not TrueType
+
+The first attempt approximated the font with DejaVu and scored **27.3% exact**
+despite 92.4% on its own synthetic validation. The confusions gave it away —
+`M→I` ×9, `W→I` ×8, `V→I` ×3, wide glyphs collapsing to a narrow bar.
+
+Measuring per-character ink widths explained why: they are quantised with *zero*
+variance — `M`=8, `1`=8, `L`=8, `T`=8, `W`=10 — at every threshold tried. No
+scalable font does that. Normalising to true alpha (`pixel = bg·(1−alpha)`)
+showed all instances of each character are **pixel-identical, max deviation
+0.004**. The renderer blits fixed bitmaps.
+
+So `solver/epfo.py` does not approximate the font; it **replays the sprites
+extracted from labelled images** (`solver/epfo_glyphs.json`, 32 glyphs) at the
+measured layout (`solver/epfo_layout.json`). Every metric now matches:
+
+| | real | synthetic |
+|---|---|---|
+| glyph height | 12.08 | 12.10 |
+| glyph width | 8.13 | 8.17 |
+| stroke density | 4.46 | 4.41 |
+| 5-segment rate | 1.00 | 1.00 |
+
+### The charset is 32, not 36
+
+`I`, `N` and `O` never occur in 280 labelled characters while the other 33 are
+uniform (χ² p = 0.52); P(three given characters absent by chance from a 36-char
+set) is 5×10⁻¹¹. A further catch: the single labelled `0` had a descender tail
+and was byte-identical to `Q` — a mislabel. The real charset is
+`1-9` + `A-Z` minus `I N O` — **32 characters, with `0` excluded too.**
+
+That matters beyond correctness: excluding `0`/`O` and `1`/`I` removes exactly
+the homoglyph pairs that cap the MCA reader at 75%. EPFO has no ambiguous pairs,
+which is why it reaches 100%.
+
+### Endpoint behaviour (measured)
+
+The captcha URL carries an `_HDIV_STATE_` token. Replaying a copied URL without
+the matching JSESSIONID 302s to `error.jsp`; but the token is **reusable within
+its session** (three fetches on one token gave three different captchas). So
+`download_epfo.py` loads the establishment-search page, scrapes the freshly
+minted token, and re-mints on expiry.
+
+```bash
+python3 download_epfo.py 400 epfo_raw
+python3 train_epfo.py 35             # synthetic-only -> solver/epfo_model.pt
+```
+
+### Results (44 held-out real captchas, trained on synthetic only)
+
+| model | exact | per-character |
+|---|---|---|
+| DejaVu approximation, 36-char set | 12/44 (27.3%) | 79.6% |
+| **extracted sprites, 32-char set** | **44/44 (100%)** | **220/220 (100%)** |
+
+No real image was used for training — the 56 labels exist only to evaluate and
+to extract the sprites. 44/44 is a small sample (95% CI `[92.0, 100]`), so read
+it as "no observed errors", not proof of perfection.
+
+---
+
+## Self-improvement loop
+
+Captcha generators change without warning, and the failure is silent: the model
+keeps returning confident nonsense and the scraper simply stops finding results.
+`selfimprove.py` is built around that risk.
+
+```bash
+python3 selfimprove.py check                 # drift + regression, exit 1 on trouble
+python3 selfimprove.py harvest --kind gst --n 200
+python3 selfimprove.py adapt   --kind gst    # self-train on confident pseudo-labels
+python3 selfimprove.py report
+```
+
+Three properties matter more than the automation itself:
+
+**`adapt` cannot make things worse.** It self-trains on high-confidence pseudo-
+labels but keeps the new weights *only* if the held-out labelled set does not
+regress; otherwise it restores the backup and exits non-zero. Pseudo-labelling
+drifts into reinforcing its own mistakes, so an ungated loop is worse than none.
+
+**Confidence is never treated as accuracy.** GST reads above 0.99 confidence
+were still only 88% correct. Every accuracy claim comes from human labels.
+
+**Accuracy is measured on the held-out split only.** Scoring all labels would
+include images the model was fine-tuned on and has memorised — MCA reads 96.5%
+over all 395 labels versus 75.0% on its 44 held-out ones. A detector built on
+the inflated number stays green while real accuracy falls.
+
+`check` needs no labels at all to catch the common case: it watches served image
+size, valid-length rate, charset validity, and confidence against the previous
+run, all recorded in `selfimprove_state.json`.
+
+---
+
 ## Programmatic use
 
 `solver/api.py` is a CPU, in-process API — no network, only needs
@@ -407,7 +516,7 @@ code, conf, kind, tries = solve_with_retry(fetch, min_conf=0.90, kind="securimag
 ```
 
 Routing is by native image size (each captcha has a distinct one): 120×40 →
-`gstat`, 182×50 → `gst`, 200×80 → `mca`, 215×80 → `securimage`.
+`gstat`, 150×50 → `epfo`, 182×50 → `gst`, 200×80 → `mca`, 215×80 → `securimage`.
 
 Securimage is **session-bound**: each captcha request rotates the server-side
 code, so only the most recently fetched captcha is valid to submit.
@@ -419,10 +528,11 @@ before fetching again. The GST captcha behaves the same way.
 ## Layout
 
 - `solver/` — renderers, models, decode, pipeline, `api.py`
-- `train_securimage.py`, `train_gst.py`, `train_mca.py`, `train.py`,
-  `gen_corpus.py`, `finetune_gst.py`, `finetune_mca.py`
+- `train_securimage.py`, `train_gst.py`, `train_mca.py`, `train_epfo.py`,
+  `train.py`, `gen_corpus.py`, `finetune_gst.py`, `finetune_mca.py`
+- `selfimprove.py` — drift detection and gated self-training
 - `eval_securimage.py`, `eval_gst.py`, `eval_mca.py`
-- `download_gst.py`, `download_mca.py`, `download_securimage.py`
+- `download_gst.py`, `download_mca.py`, `download_epfo.py`, `download_securimage.py`
 - `examples/ecourts_securimage.py`
 - `fonts/AHGBold.ttf` — Alte Haas Grotesk Bold (via the Securimage project)
 - `fonts/DejaVu*.ttf` — DejaVu fonts (Bitstream Vera / Arev licence,

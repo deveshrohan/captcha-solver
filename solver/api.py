@@ -28,6 +28,7 @@ from PIL import Image
 
 from solver import epfo as E
 from solver import gst as G
+from solver import kaveri as K
 from solver import mca as M
 from solver import securimage as S
 from solver.model import DigitCNN
@@ -55,6 +56,7 @@ _SIZES = {
     (200, 80): "mca",
     (120, 40): "gstat",
     (150, 50): "epfo",
+    (200, 60): "kaveri",
 }
 
 # Characters that carry no distinguishing information in a given captcha style,
@@ -66,6 +68,10 @@ _SIZES = {
 # it does not — so the right move is to throw that captcha away and fetch a new
 # one rather than submit a guess. Doing that costs ~1.4 fetches per solve and
 # takes the success rate to ~97% within 3 fetches (vs 75% single-shot).
+#
+# Kaveri deliberately has no entry: `O` is 23px wide against `0` at 17, and `1`
+# carries a diagonal flag against `I`'s bare 3px bar, so the pairs that cost MCA
+# its accuracy are separable there by construction.
 AMBIGUOUS = {
     "mca": "lI",
 }
@@ -131,9 +137,13 @@ def _load_epfo():
     return _epfo
 
 
-def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False):
+def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False,
+           kaveri=False):
     """Pre-load models at scraper startup so the first live solve isn't slow.
-    Also runs one dummy forward to trigger lazy CUDA/oneDNN init. Call once."""
+    Also runs one dummy forward to trigger lazy CUDA/oneDNN init. Call once.
+
+    `kaveri` has no model — it only parses its sprite library, which is cheap;
+    the flag exists so callers can enable every kind uniformly."""
     if securimage:
         m = _load_securimage()
         with torch.no_grad():
@@ -152,6 +162,8 @@ def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False):
         m = _load_epfo()
         with torch.no_grad():
             m(torch.zeros(1, 1, E.IN_H, E.IN_W))
+    if kaveri:
+        K.glyphs()
 
 
 def _to_pil(image):
@@ -232,6 +244,18 @@ def solve_epfo(image):
     return text[0], float(conf[0])
 
 
+def solve_kaveri(image):
+    """Solve a Kaveri portal captcha (200x60, 6 uppercase-alnum chars).
+    Returns (text, confidence).
+
+    No model is involved: the image is a deterministic composition of 36 known
+    sprites, so this is an exact cover of the ink mask. Confidence is 1.0 when a
+    cover exists and `1 - mismatch/ink` otherwise — a real measure of how well
+    the sprite library explains the image, not a softmax that stays high when
+    the generator changes."""
+    return K.solve_image(image)
+
+
 def solve_bytes(image, kind=None):
     """Auto-route and solve. Returns (text, confidence, kind).
 
@@ -250,6 +274,14 @@ def solve_bytes(image, kind=None):
         text, conf = solve_mca(pil)
     elif kind == "epfo":
         text, conf = solve_epfo(pil)
+    elif kind == "kaveri":
+        # Pass the ORIGINAL object, not `pil`: this captcha is RGBA and PIL maps
+        # transparent pixels to (0,0,0) on convert("RGB"), which is exactly the
+        # value the ink test looks for. `kaveri.ink_mask` also crops the
+        # transparent band away, so either input is read correctly — but keeping
+        # the alpha channel means the crop is a second line of defence, not the
+        # only one.
+        text, conf = solve_kaveri(image)
     elif kind == "gstat":
         text, conf = solve_gstat(image if isinstance(image, str) else pil.convert("L"))
     else:

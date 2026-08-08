@@ -55,6 +55,15 @@ KINDS = {
                  charset="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
                  corpus="epfo_raw", glob="e*.png", labels="epfo_labels.json",
                  fetch=["python3", "download_epfo.py"], model="solver/epfo_model.pt"),
+    # No model: Kaveri is read by exact sprite cover, so `adapt` has nothing to
+    # train and refuses. `check` still matters — arguably more than elsewhere,
+    # because the reader depends on the generator's bitmaps being unchanged, and
+    # a font swap turns confidence from 1.0 into something visibly lower rather
+    # than into silent nonsense.
+    "kaveri": dict(size=(200, 60), length=6,
+                   charset="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                   corpus="kaveri_raw", glob="*.png", labels="kaveri_labels.json",
+                   fetch=["python3", "download_kaveri.py"], model=None),
 }
 
 
@@ -206,6 +215,12 @@ def cmd_adapt(args):
     hand-labelled eval set does not regress."""
     kind = args.kind
     cfg = KINDS[kind]
+    if cfg["model"] is None:
+        print(f"{kind}: nothing to train — this reader is an exact sprite cover, "
+              f"not a model. If the generator changed, the fix is to re-extract "
+              f"the sprite library (solver.kaveri.extract_sprites), not to adapt "
+              f"weights. Run `check` to see whether it has.")
+        return 1
     script = {"gst": "finetune_gst.py", "mca": "finetune_mca.py",
               "epfo": "finetune_epfo.py"}.get(kind)
     if not script or not os.path.exists(script):

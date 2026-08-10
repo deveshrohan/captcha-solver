@@ -4,8 +4,11 @@ Local, synthetic-trained captcha readers. `solve.py` auto-routes by image size
 and runs on CPU with the included weights.
 
 > Ships code, the synthetic data generators, and pretrained weights — no captcha
-> images (models are trained on synthetic data only). Use only against services
-> you are authorized to automate. Endpoint URLs are placeholders; set
+> images. Every *model* here is trained on synthetic data only. The two
+> model-free readers (kaveri, udyam) are the exception worth naming: they ship a
+> library of individual glyph bitmaps extracted from real captchas, since a
+> template cover is only as good as the templates. Use only against services you
+> are authorized to automate. Endpoint URLs are placeholders; set
 > `SECURIMAGE_URL` to your own. MIT licensed.
 
 | type | size | style | model | held-out real accuracy |
@@ -15,6 +18,8 @@ and runs on CPU with the included weights.
 | gst | 182×50 | 6 digits, hatch grid + fisheye | CRNN+CTC on RGB, SimpleCaptcha port | 99.0% exact (97/98), 99.83% digits |
 | mca | 200×80 | 6 mixed-case alnum, line noise | exact ink mask → CRNN+CTC + real fine-tune | 75.0% exact single-shot, ~97% within 3 fetches |
 | epfo | 150×50 | 5 alnum, gradient background | background subtraction → sprite-exact synth → CRNN+CTC | **100% exact (44/44)** |
+| kaveri | 200×60 | 6 uppercase-alnum, lines under text | exact ink mask → sprite cover, **no model** | **210/210 exact and unique** |
+| udyam | 225×80 | 6 uppercase-alnum, lines over text | luminance ink mask → template cover, **no model** | **36/36 exact**, margin > 0 on 2520/2520 glyphs |
 
 ```bash
 pip install torch numpy pillow       # inference deps (scipy is training-only)
@@ -466,6 +471,74 @@ it as "no observed errors", not proof of perfection.
 
 ---
 
+## Udyam portal captcha (225×80)
+
+`udyamregistration.gov.in/CaptchaControl.aspx` — 6 characters, navy on a pale
+blue gradient under the tricolour. Like Kaveri it is read by covering the ink
+with fixed glyph bitmaps, so there is no model, no training script and no `.pt`;
+`solver/udyam_glyphs.json` is 25KB.
+
+**The noise lines are drawn over the text, and it does not matter.** This is the
+one structural difference from Kaveri, where the lines sit underneath and
+`rgb == (0,0,0)` recovers every glyph whole. Here they are *alpha-blended*: a
+line crossing ink keeps the ink's red and green and lifts only blue —
+`(25,60,153)`, `(25,60,175)`, `(25,100,196)` — so the crossed pixels stay dark
+while the same line over the pale background stays light. A luminance cut
+recovers them, and glyphs stop fragmenting.
+
+**Subpixel phase, not occlusion, is what varies.** Recovering the occluded
+pixels moves the exact-duplicate rate only 61.8% → 64.7%. Matching with ±2px
+alignment collapses 147 apparent bitmap variants into 34 — the full 33-character
+alphabet, plus a second phase for `5`. Those two `5`s are kept apart rather than
+merged: at IoU 0.828 they sit *above* the closest genuinely distinct pair (`E`
+vs `F`, 0.794), so any threshold that merged them would risk merging those.
+
+**Glyphs overlap, so the reader covers rather than segments.** A merged `WX`
+spans 55 columns where `W` (35px) and `X` (27px) need 62 — they share 7. No
+vertical cut yields both, and cutting to complete the `W` leaves an
+X-minus-left-edge that is a pixel-perfect `K`. Scoring each piece on its own
+merit therefore ranks the wrong reading joint-first; only the X's orphaned
+lower-left stroke, unexplained by `W` and `K` together, distinguishes them. So
+each glyph is anchored on the leftmost ink its predecessors left over — as the
+Kaveri reader anchors on a pixel — and whole readings are scored by cover.
+
+| | |
+|---|---|
+| alphabet | 33 chars — no `0`, `I` or `O`, so no homoglyph pairs and no `AMBIGUOUS` entry |
+| labelled | **36/36 exact**, of which **26/26** have touching glyphs |
+| substitution margin | positive on **2520/2520** glyphs (min 0.17, median 0.70) |
+| confidence | real 0.869…0.99 vs scaled-text 0.744, rotated 0.684, black 0.120 |
+
+The headline is the **substitution margin**, not the accuracy: for every glyph,
+swapping in the runner-up character explains the pixels measurably worse. That
+is a property of the images, not an estimate from a sample. It is the graded
+counterpart of Kaveri's exact-cover uniqueness — the text here is antialiased,
+so no cover is pixel-exact and confidence never legitimately reaches 1.0.
+
+What the margin cannot catch is the one human step: the 34 bitmaps were mapped
+to characters by eye. A mislabelled class corrupts every read containing it
+while leaving every margin healthy, which is what the labels and
+`eval_udyam.py --sprites` are for.
+
+Two measurement traps, both of which produced wrong readers before being fixed:
+
+* the border `(100,130,180)` and the green bar `(0,128,0)` are both dark enough
+  to pass any ink test, so the reader works on a fixed band, not the raw image;
+* a 2px speck of line residue 20 rows below the text is too narrow to disturb
+  segmentation but stretches a glyph's bounding box from 25 rows to 46, which
+  silently corrupted the `U`, `H` and `F` templates built from those crops.
+
+Endpoint: a user-agent **denylist** (`curl/8.x` and `python-requests` get a
+`403 Forbidden - Access denied due to bot User-Agent`; an empty UA, `Mozilla/5.0`
+and even `x` get 200) — the same shape as Kaveri, the opposite of GST. Unlike
+Kaveri it is **session-bound**: a stock ASP.NET `CaptchaControl` holding the
+answer in session state, so only the most recently fetched image is submittable,
+as for Securimage. How the answer is submitted is deliberately not documented —
+the captcha guards forms taking an Aadhaar or Udyam number, so confirming the
+validate contract would mean posting identifiers to a live government portal.
+
+---
+
 ## Self-improvement loop
 
 Captcha generators change without warning, and the failure is silent: the model
@@ -531,9 +604,14 @@ before fetching again. The GST captcha behaves the same way.
 - `solver/` — renderers, models, decode, pipeline, `api.py`
 - `train_securimage.py`, `train_gst.py`, `train_mca.py`, `train_epfo.py`,
   `train.py`, `gen_corpus.py`, `finetune_gst.py`, `finetune_mca.py`
+- `mkglyphs_udyam.py` — rebuild the Udyam class library from a corpus
+  (Kaveri's equivalent lives in `solver.kaveri.extract_sprites`)
 - `selfimprove.py` — drift detection and gated self-training
-- `eval_securimage.py`, `eval_gst.py`, `eval_mca.py`, `eval_epfo.py`
-- `download_gst.py`, `download_mca.py`, `download_epfo.py`, `download_securimage.py`
+- `eval_securimage.py`, `eval_gst.py`, `eval_mca.py`, `eval_epfo.py`,
+  `eval_kaveri.py`, `eval_udyam.py`
+- `download_gst.py`, `download_mca.py`, `download_epfo.py`,
+  `download_securimage.py`, `download_kaveri.py`, `download_udyam.py`
+- `tests/` — `python3 -m unittest discover -s tests -v`
 - `examples/ecourts_securimage.py`
 - `fonts/AHGBold.ttf` — Alte Haas Grotesk Bold (via the Securimage project)
 - `fonts/DejaVu*.ttf` — DejaVu fonts (Bitstream Vera / Arev licence,

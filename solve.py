@@ -6,6 +6,7 @@
   200x60  -> Kaveri portal           (exact ink mask -> sprite cover, no model)
   200x80  -> MCA portal              (exact ink mask -> CRNN + CTC)
   215x80  -> eCourts securimage      (CRNN + CTC whole-image reader)
+  225x80  -> Udyam portal            (luminance ink mask -> template cover, no model)
 
 Usage: python solve.py IMAGE [IMAGE ...]
 """

@@ -64,6 +64,15 @@ KINDS = {
                    charset="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
                    corpus="kaveri_raw", glob="*.png", labels="kaveri_labels.json",
                    fetch=["python3", "download_kaveri.py"], model=None),
+    # Also model-free: Udyam is read by template cover. `check` is the point
+    # here — the reader assumes a fixed set of 34 glyph bitmaps, and if the
+    # portal changes font the cover stops explaining the ink and confidence
+    # falls away from its normal 0.87..0.99 band instead of going quietly wrong.
+    # Note the charset really is 33 characters: the portal issues no 0, I or O.
+    "udyam": dict(size=(225, 80), length=6,
+                  charset="123456789ABCDEFGHJKLMNPQRSTUVWXYZ",
+                  corpus="udyam_raw", glob="u*.png", labels="udyam_labels.json",
+                  fetch=["python3", "download_udyam.py"], model=None),
 }
 
 
@@ -216,10 +225,12 @@ def cmd_adapt(args):
     kind = args.kind
     cfg = KINDS[kind]
     if cfg["model"] is None:
-        print(f"{kind}: nothing to train — this reader is an exact sprite cover, "
-              f"not a model. If the generator changed, the fix is to re-extract "
-              f"the sprite library (solver.kaveri.extract_sprites), not to adapt "
-              f"weights. Run `check` to see whether it has.")
+        rebuild = {"kaveri": "solver.kaveri.extract_sprites",
+                   "udyam": "mkglyphs_udyam.py"}.get(kind, "the glyph library")
+        print(f"{kind}: nothing to train — this reader covers the ink with fixed "
+              f"glyph bitmaps, not a model. If the generator changed, the fix is "
+              f"to re-extract the library ({rebuild}), not to adapt weights. "
+              f"Run `check` to see whether it has.")
         return 1
     script = {"gst": "finetune_gst.py", "mca": "finetune_mca.py",
               "epfo": "finetune_epfo.py"}.get(kind)

@@ -46,7 +46,7 @@ Reconstructed generator:
     for ($i = 0; $i < 50; $i++)                    // PLTE[2..51]
         imagesetpixel($im, rand(0,119), rand(0,39),
             imagecolorallocate($im, rand(150,255), rand(150,255), rand(150,255)));
-    imagestring($im, 5, 20, 10, $code, $black);    // built-in font 5, 9x15 cell
+    imagestring($im, 5, 20, 10, $code, $black);    // font 5 = gdFontGiant, 9x15
     imagepng($im);
 
 Which makes this captcha **invertible rather than merely learnable**, and more
@@ -91,7 +91,12 @@ LENGTH = 6
 W, H = 120, 40
 
 # The measured text grid. `imagestring` advances by a fixed 9px cell (GD's
-# built-in font 5), and the origin never moved across 60 images.
+# built-in font 5 = gdFontGiant), and the origin never moved across 60 images.
+#
+# The 15-row font cell sits at image rows 10..24; rows 13..24 are used because
+# the 36 alphanumeric glyphs put ink in exactly font rows 3..14 and nowhere
+# else. So this crop is lossless by construction, not a fitted bounding box --
+# tests/test_ngt_font.py checks that against libgd's own bitmaps.
 X0, PITCH = 20, 9
 R0, R1 = 13, 25
 CELL_W, CELL_H = PITCH, R1 - R0

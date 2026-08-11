@@ -48,7 +48,7 @@ imagecolorallocate($im, 0,0,0);                 // PLTE[1] text
 for ($i = 0; $i < 50; $i++)                     // PLTE[2..51] — always exactly 50
     imagesetpixel($im, rand(0,119), rand(0,39),
         imagecolorallocate($im, rand(150,255), rand(150,255), rand(150,255)));
-imagestring($im, 5, 20, 10, $code, $black);     // built-in font 5 (gdFontLarge, 9x15)
+imagestring($im, 5, 20, 10, $code, $black);     // built-in font 5 (gdFontGiant, 9x15)
 imagepng($im);
 ```
 
@@ -239,8 +239,10 @@ eval set would most likely transpose them there too, and the held-out score
 would come back a confident 100% for a reader that swaps them forever. The
 error would be invisible to the evaluation designed to catch it.
 
-**Fix:** `imagestring(..., 5, ...)` is libgd's `gdFontLarge`, whose 9×15 bitmaps
-are public in `gdfontl.h`. The shipped bitmaps stay extraction-sourced, and the
+**Fix:** `imagestring(..., 5, ...)` is libgd's `gdFontGiant`, whose 9×15 bitmaps
+are public in `src/gdfontg.c`. (Font 5 is *Giant*; `gdFontLarge` is font 4 at
+8×16. The measured 9px pitch is what tells them apart — an earlier draft of this
+spec named the wrong one, and the cross-check below is what caught it.) The shipped bitmaps stay extraction-sourced, and the
 canonical font is used **only as a test-time cross-check on the 36 labels**.
 That is an external ground truth, and it is the only thing that breaks the
 circularity.
@@ -286,7 +288,7 @@ the corpus-wide invariant checks.
 - all 36 bitmaps mutually distinct
 - `1`, `l`, `i` specifically remain separated — regression guard on the tightest
   cluster
-- the 36 labels match libgd's `gdFontLarge` (§5)
+- the 36 labels match libgd's `gdFontGiant` (§5)
 
 **Ink model**
 - exact black is ink; a luminance-150 noise pixel is **not**

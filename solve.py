@@ -1,6 +1,10 @@
 """CLI: solve captcha image(s), auto-routing by captcha type.
 
   120x40  -> gstat numeric captcha   (threshold + segment + per-digit CNN)
+           OR NGT portal             (exact black mask -> fixed-grid glyph lookup, no model)
+           These two share a size — the only collision here — so they are told
+           apart by content: gstat's ink is #333 and it never emits a pure-black
+           pixel, while NGT's text is pure black. See solver/api._route_120x40.
   150x42  -> ITAT portal             (darkness projection -> CRNN + CTC, case-insensitive)
   150x50  -> EPFO portal             (exact background subtraction -> CRNN + CTC)
   182x50  -> GST portal              (CRNN + CTC, RGB, length-6 beam)

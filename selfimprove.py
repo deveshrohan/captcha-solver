@@ -73,6 +73,20 @@ KINDS = {
                   charset="123456789ABCDEFGHJKLMNPQRSTUVWXYZ",
                   corpus="udyam_raw", glob="u*.png", labels="udyam_labels.json",
                   fetch=["python3", "download_udyam.py"], model=None),
+    # Model-free too, and the kind where `check` earns its keep most. The NGT
+    # reader is an *exact* cover: a correct read scores exactly 1.0, so the
+    # confidence series is normally a flat line of 1.0 and ANY movement off it
+    # is a real signal, not noise. Elsewhere drift has to be teased out of a
+    # wobbling mean; here the first captcha whose font, grid or layer order
+    # changed drops confidence immediately and visibly.
+    #
+    # Harvesting is the constraint: the endpoint admits ~10 requests per window
+    # and extends the block if polled, so download_ngt.py paces itself and a
+    # `harvest` run takes real wall-clock. Keep --n modest.
+    "ngt": dict(size=(120, 40), length=6,
+                charset="0123456789abcdefghijklmnopqrstuvwxyz",
+                corpus="ngt_raw", glob="n*.png", labels="ngt_labels.json",
+                fetch=["python3", "download_ngt.py"], model=None),
 }
 
 

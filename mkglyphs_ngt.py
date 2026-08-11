@@ -35,7 +35,8 @@ Those 36 hand decisions are the whole correctness surface of the reader, and the
 riskiest of them are `1`, `l` and `i` — mutually 6 px apart. A human labelling
 the eval set would likely repeat any transposition made here, so the held-out
 score could not catch it. `tests/test_ngt_font.py` therefore checks these labels
-against libgd's canonical `gdFontLarge`, which is external ground truth.
+against libgd's canonical `gdFontGiant` (PHP's font 5), which is external
+ground truth indexed by ASCII code rather than by eye.
 
 ### The split
 

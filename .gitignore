@@ -19,6 +19,7 @@ epfo_raw/
 kaveri_raw/
 udyam_raw/
 itat_raw/
+ngt_raw/
 samples/
 test*.png
 *.png

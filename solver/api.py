@@ -31,6 +31,7 @@ from solver import gst as G
 from solver import itat as T
 from solver import kaveri as K
 from solver import mca as M
+from solver import ngt as N
 from solver import securimage as S
 from solver import udyam as Y
 from solver.model import DigitCNN
@@ -53,12 +54,29 @@ _mca = None
 _epfo = None
 _itat = None
 
-# (width, height) -> kind. Every supported captcha has a distinct native size.
+def _route_120x40(pil):
+    """Split the one size collision in the repo: gstat and NGT are both 120x40.
+
+    gstat's palette is `#333` ink, `#ccc` lines and white — it cannot emit a
+    pure-black pixel — while NGT's text *is* pure black. Measured: 0 black
+    pixels across 1024 gstat images (1000 synthetic, 24 real), against 159..228
+    across 60 NGT ones.
+
+    The margin is structural rather than merely empirical, which is why a
+    content test is safe to route on: NGT's thinnest possible word is six `r`
+    at 21 ink px each, so it can never fall below 126.
+    """
+    return "ngt" if (np.asarray(pil.convert("RGB")) == 0).all(2).sum() >= 20 \
+        else "gstat"
+
+
+# (width, height) -> kind, or a callable(pil) -> kind where one size serves more
+# than one captcha.
 _SIZES = {
     (215, 80): "securimage",
     (182, 50): "gst",
     (200, 80): "mca",
-    (120, 40): "gstat",
+    (120, 40): _route_120x40,          # gstat or ngt, decided by content
     (150, 50): "epfo",
     (200, 60): "kaveri",
     (225, 80): "udyam",
@@ -87,6 +105,14 @@ _SIZES = {
 # census, and the reader folds case (see solver/itat.py). Folding removes the
 # case-homoglyphs (c/C, s/S, ...) and the excluded digits remove the digit/letter
 # ones, so no ambiguous pair survives.
+#
+# NGT has no entry despite issuing the full `0-9a-z` set — including every
+# homoglyph the others exclude. Its 36 glyph bitmaps are all distinct and the
+# match is pixel-exact, so `0`/`o` (32 px apart) and `5`/`s` (35) are not coin
+# flips but different dictionary keys. `1`, `l` and `i` sit closer at 6 px, and
+# the reader answers that with exactness rather than a retry: a cell that does
+# not match byte for byte cannot reach confidence 1.0 (see solver/ngt.py), so a
+# `min_conf=1.0` gate already rejects exactly the reads a retry would be for.
 AMBIGUOUS = {
     "mca": "lI",
 }
@@ -165,11 +191,11 @@ def _load_itat():
 
 
 def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False,
-           kaveri=False, udyam=False, itat=False):
+           kaveri=False, udyam=False, itat=False, ngt=False):
     """Pre-load models at scraper startup so the first live solve isn't slow.
     Also runs one dummy forward to trigger lazy CUDA/oneDNN init. Call once.
 
-    `kaveri` and `udyam` have no model — they only parse their template
+    `kaveri`, `udyam` and `ngt` have no model — they only parse their template
     libraries, which is cheap; the flags exist so callers can enable every kind
     uniformly."""
     if securimage:
@@ -198,6 +224,8 @@ def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False,
         K.glyphs()
     if udyam:
         Y.classes()
+    if ngt:
+        N.glyphs()
 
 
 def _to_pil(image):
@@ -316,14 +344,32 @@ def solve_udyam(image):
     return Y.solve_image(image)
 
 
+def solve_ngt(image):
+    """Solve an NGT captcha (120x40, 6 lowercase-alnum chars).
+    Returns (text, confidence).
+
+    No model is involved: the glyphs are a fixed bitmap font blitted on a fixed
+    grid, and the noise is painted *underneath* the text, so the ink mask is
+    exact and the read is six dictionary lookups.
+
+    Confidence is 1.0 only when all six cells match a template byte for byte and
+    no ink lies outside the grid — for this generator that is a proof the read
+    is correct, not a softmax that happens to be saturated. Anything less means
+    the generator moved, so the gate to use here is `min_conf=1.0`."""
+    return N.solve_image(image)
+
+
 def solve_bytes(image, kind=None):
     """Auto-route and solve. Returns (text, confidence, kind).
 
-    kind is inferred from the image's native size (every supported captcha has a
-    distinct one); pass kind explicitly to force it."""
+    kind is inferred from the image's native size; pass kind explicitly to force
+    it. Sizes are distinct except 120x40, which serves both gstat and NGT and is
+    resolved by a content test (`_route_120x40`)."""
     pil = _to_pil_rgb(image)
     if kind is None:
         kind = _SIZES.get((pil.width, pil.height))
+        if callable(kind):                    # shared size: decide by content
+            kind = kind(pil)
         if kind is None:                      # unknown size: fall back to width
             kind = "securimage" if pil.width > 180 else "gstat"
     if kind == "securimage":
@@ -346,6 +392,8 @@ def solve_bytes(image, kind=None):
         text, conf = solve_kaveri(image)
     elif kind == "udyam":
         text, conf = solve_udyam(pil)
+    elif kind == "ngt":
+        text, conf = solve_ngt(pil)
     elif kind == "gstat":
         text, conf = solve_gstat(image if isinstance(image, str) else pil.convert("L"))
     else:

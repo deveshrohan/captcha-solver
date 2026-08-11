@@ -140,11 +140,11 @@
   "000000000"
  ],
  "_meta": {
-  "built_from": "all-images",
+  "built_from": "train-split",
   "min_hamming": 6,
-  "n_cells": 1134,
-  "n_images": 189,
-  "split": null
+  "n_cells": 1140,
+  "n_images": 190,
+  "split": "ngt_split.json"
  },
  "a": [
   "000000000",

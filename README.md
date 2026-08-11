@@ -21,7 +21,7 @@ Local, synthetic-trained captcha readers. `solve.py` auto-routes by image size
 | kaveri | 200×60 | 6 uppercase-alnum, lines under text | exact ink mask → sprite cover, **no model** | **210/210 exact and unique** |
 | udyam | 225×80 | 6 uppercase-alnum, lines over text | luminance ink mask → template cover, **no model** | **36/36 exact**, margin > 0 on 2520/2520 glyphs |
 | itat | 150×42 | 6 mixed-case alnum, blue lines over text | darkness projection → CRNN+CTC, case-insensitive + augmented real fine-tune | 36.7% exact / 85.0% char (11/30), ~84% within 4 fetches |
-| ngt | 120×40 | 6 lowercase-alnum, pastel speckle under text | exact black mask → fixed-grid glyph lookup, **no model** | **180/180 exact cover**, confidence 1.000 |
+| ngt | 120×40 | 6 lowercase-alnum, pastel speckle under text | exact black mask → fixed-grid glyph lookup, **no model** | **40/40 exact** held-out, 239/239 exact cover |
 
 ```bash
 pip install torch numpy pillow       # inference deps (scipy is training-only)
@@ -840,21 +840,44 @@ python3 eval_ngt.py                   # score the held-out split
 
 ### Results
 
-Every read on every real captcha is an exact cover — a claim that needs **no
-labels at all** and is therefore free of any hand-reading error:
+The first number needs **no labels at all**, so no hand-reading error can
+flatter it. Every cell of every image either matches a template byte for byte or
+it does not:
 
 | measurement | result |
 |---|---|
-| images whose six cells all match a template byte for byte | **180/180** |
-| confidence mean / p10 | **1.000 / 1.000** |
-| distinct reads | 180/180 |
+| images whose six cells all match a template byte for byte | **239/239** |
+| confidence mean / min | **1.0000 / 1.0000** |
+| distinct reads | 239/239 |
 | charset coverage | 36/36 classes |
 
 Because the cover is exact, "confidence 1.0" and "correct" are the same
-statement here, which is the property none of the CRNN readers in this file can
-offer. The hand-labelled held-out score is reported separately below once the
-split is scored, and its role is to catch the one thing the label-free check
-cannot: a wrong *label* attached to a right *shape*.
+statement here — the property none of the CRNN readers in this file can offer.
+
+The second checks the one thing exactness cannot. A mislabelled class would
+corrupt every read containing it while leaving the cover perfectly exact:
+exactness proves the *shape* was found, only labels prove the *character* is
+right. 40 held-out images were read by eye and scored against a glyph library
+built from the 190 **train** images only:
+
+| set | exact | chars |
+|---|---|---|
+| **held-out (40)** | **40/40 (100%)** | **240/240 (100%)** |
+
+The split is seeded and pinned in `ngt_split.json`, and the honesty rule is
+enforced rather than remembered: `mkglyphs_ngt.py` stamps `built_from` inside
+the library and `eval_ngt.py` refuses to print a held-out number unless it reads
+`train-split`. Templates derived from the images being scored would otherwise
+inflate it silently — the trap this README documents for MCA, which reads 96.5%
+over all its labels against 75.0% held out.
+
+One caveat on how those labels were produced. Nine of the 240 characters were
+`1`, `l` or `i`, which differ by 6 pixels and cannot be cold-read reliably at
+1×. They were adjudicated at 26× zoom on the distinguishing features — the foot
+serif is 6px wide on `1` and 4px on `l`, and `i` has a blank row under its dot —
+the same "adjudicated at zoom" approach the ITAT labels use. All nine confirmed
+the first-pass read, but that part of the score is confirmatory rather than
+blind.
 
 **Drift is loud.** If the portal changes font, grid, or layer order, no exact
 cover exists and confidence falls off 1.0 immediately instead of returning

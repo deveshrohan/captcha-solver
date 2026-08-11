@@ -113,6 +113,18 @@ class TestGlyphTable(unittest.TestCase):
         for a, b, lo in (("0", "o", 20), ("5", "s", 20), ("9", "g", 20)):
             self.assertGreater(int((self.g[a] ^ self.g[b]).sum()), lo)
 
+    def test_shipped_library_was_built_from_the_train_split(self):
+        """The README's held-out number is only honest if the templates never
+        saw the held-out images. `eval_ngt.py` enforces that at report time;
+        this pins it for the artifact actually committed, so a rebuild without
+        --split fails here rather than quietly invalidating the number."""
+        meta = N.glyph_meta()
+        self.assertEqual(meta.get("built_from"), "train-split",
+                         "solver/ngt_glyphs.json was not built from the train "
+                         "split: rebuild with "
+                         "`python3 mkglyphs_ngt.py ngt_raw --split ngt_split.json`")
+        self.assertEqual(meta.get("split"), "ngt_split.json")
+
 
 class TestInkModel(unittest.TestCase):
     def test_exact_black_is_ink(self):

@@ -148,17 +148,30 @@ def main():
     if args.split:
         with open(args.split) as f:
             train = set(json.load(f)["train"])
-        paths = [p for p in paths if os.path.basename(p) in train]
+        # split files store repo-relative paths; accept a bare basename too
+        keep = train | {os.path.basename(t) for t in train}
+        paths = [p for p in paths
+                 if p in keep or os.path.basename(p) in keep]
         if not paths:
             raise SystemExit("split's train side matched no image")
+        built_from = "train-split"
         print("building from the TRAIN split only: %d images" % len(paths))
     else:
+        built_from = "all-images"
         print("building from ALL %d images — coverage check only, the result "
               "is NOT safe to report an accuracy against" % len(paths))
 
     out, seen, worst = build(paths)
 
-    N.save_glyphs(args.out, out)
+    # Provenance travels with the artifact so eval_ngt.py can *enforce* the
+    # train-only rule rather than trust that whoever built it remembered.
+    N.save_glyphs(args.out, out, meta={
+        "built_from": built_from,
+        "n_images": len(paths),
+        "n_cells": sum(seen.values()),
+        "split": os.path.basename(args.split) if args.split else None,
+        "min_hamming": worst[0],
+    })
     print("wrote %s: %d glyphs from %d cells" % (args.out, len(out),
                                                  sum(seen.values())))
     print("min pairwise Hamming %d (%s/%s); ink %d..%d px"

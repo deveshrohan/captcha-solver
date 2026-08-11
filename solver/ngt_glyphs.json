@@ -139,6 +139,13 @@
   "000000000",
   "000000000"
  ],
+ "_meta": {
+  "built_from": "all-images",
+  "min_hamming": 6,
+  "n_cells": 1134,
+  "n_images": 189,
+  "split": null
+ },
  "a": [
   "000000000",
   "000000000",

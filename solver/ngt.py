@@ -126,20 +126,38 @@ def glyphs():
 
     One bitmap per character, not a list: unlike Udyam there is no subpixel
     phase to absorb, because the glyphs are blitted at integer positions on a
-    fixed grid and every instance is byte-identical."""
+    fixed grid and every instance is byte-identical.
+
+    Keys beginning with `_` are metadata, not characters (see `glyph_meta`)."""
     global _GLYPHS, _BY_BITS
     if _GLYPHS is None:
         with open(_GLYPH_FILE) as f:
             raw = json.load(f)
-        _GLYPHS = {c: _unpack(v) for c, v in raw.items()}
+        _GLYPHS = {c: _unpack(v) for c, v in raw.items()
+                   if not c.startswith("_")}
         _BY_BITS = {b.tobytes(): c for c, b in _GLYPHS.items()}
     return _GLYPHS
 
 
-def save_glyphs(path, data):
+def glyph_meta():
+    """-> the library's provenance dict, or {} for a library built before it was
+    recorded.
+
+    Carries `built_from`: "train-split" or "all-images". `eval_ngt.py` refuses to
+    report a held-out accuracy against an "all-images" library, because
+    templates derived from the images being scored would inflate the number.
+    Recording it in the artifact makes that guard mechanical rather than a
+    promise in a docstring."""
+    with open(_GLYPH_FILE) as f:
+        return json.load(f).get("_meta", {})
+
+
+def save_glyphs(path, data, meta=None):
     """Write a glyph library built by mkglyphs_ngt.py. `data` maps char -> bool
-    array."""
+    array; `meta` is a provenance dict stored under `_meta`."""
     out = {c: _pack(v) for c, v in data.items()}
+    if meta:
+        out["_meta"] = meta
     with open(path, "w") as f:
         json.dump(out, f, indent=1, sort_keys=True)
 

@@ -1,14 +1,14 @@
 # captcha-solver
 
 Local, synthetic-trained captcha readers. `solve.py` auto-routes by image size
-and runs on CPU with the included weights.
+(and, where two share one, by content) and runs on CPU with the included weights.
 
 > Ships code, the synthetic data generators, and pretrained weights — no captcha
-> images. Every *model* here is trained on synthetic data only. The two
-> model-free readers (kaveri, udyam) are the exception worth naming: they ship a
-> library of individual glyph bitmaps extracted from real captchas, since a
-> template cover is only as good as the templates. Use only against services you
-> are authorized to automate. Endpoint URLs are placeholders; set
+> images. Every *model* here is trained on synthetic data only. The three
+> model-free readers (kaveri, udyam, ngt) are the exception worth naming: they
+> ship a library of individual glyph bitmaps extracted from real captchas, since
+> a template cover is only as good as the templates. Use only against services
+> you are authorized to automate. Endpoint URLs are placeholders; set
 > `SECURIMAGE_URL` to your own. MIT licensed.
 
 | type | size | style | model | held-out real accuracy |
@@ -21,6 +21,7 @@ and runs on CPU with the included weights.
 | kaveri | 200×60 | 6 uppercase-alnum, lines under text | exact ink mask → sprite cover, **no model** | **210/210 exact and unique** |
 | udyam | 225×80 | 6 uppercase-alnum, lines over text | luminance ink mask → template cover, **no model** | **36/36 exact**, margin > 0 on 2520/2520 glyphs |
 | itat | 150×42 | 6 mixed-case alnum, blue lines over text | darkness projection → CRNN+CTC, case-insensitive + augmented real fine-tune | 36.7% exact / 85.0% char (11/30), ~84% within 4 fetches |
+| ngt | 120×40 | 6 lowercase-alnum, pastel speckle under text | exact black mask → fixed-grid glyph lookup, **no model** | **180/180 exact cover**, confidence 1.000 |
 
 ```bash
 pip install torch numpy pillow       # inference deps (scipy is training-only)
@@ -716,6 +717,153 @@ a claim that a case-sensitive submission would match.
 
 ---
 
+## NGT portal captcha (120×40)
+
+`greentribunal.gov.in/sites/all/modules/custom/case_status/captcha.php` — six
+lowercase alphanumeric characters in pure black on white, scattered with pastel
+single-pixel noise. This is the National Green Tribunal's case-status captcha,
+and it is the easiest artifact in this repo by a wide margin: it is **fully
+invertible**, so the reader is a dictionary lookup and the accuracy claim is a
+proof about the generator rather than a measurement of a model.
+
+### The palette reconstructs the generator
+
+The PNG is a *palette* image (`imagecreate`, not truecolor) carrying libgd's
+`pHYs` = 3780 ppm — the PHP-GD fingerprint, the same lineage as the numeric
+captcha at the top of this file. The ink is exactly `(0,0,0)`; every other
+non-white pixel has all three channels in `[150,255]`. So one equality test,
+`rgb == (0,0,0)`, is the entire preprocessing story, with a 154-level gulf
+beneath it.
+
+The decisive measurement, though, is not in the pixels but in the `PLTE` chunk,
+which is **52 entries in every single image** — white, black, and exactly 50
+noise colours — while only 41–49 noise pixels are ever *visible*.
+
+A palette entry survives its pixel being overdrawn. So the missing noise colours
+are the ones painted underneath the glyphs, and that fixes the layer order:
+noise first, text last. **The ink therefore cannot be damaged** — not as a lucky
+observation extrapolated from a sample, but as a consequence of the drawing
+order, with the palette as the evidence for the order.
+
+```php
+$im = imagecreate(120, 40);
+imagecolorallocate($im, 255,255,255);          // PLTE[0] background
+imagecolorallocate($im, 0,0,0);                // PLTE[1] text
+for ($i = 0; $i < 50; $i++)                    // PLTE[2..51]
+    imagesetpixel($im, rand(0,119), rand(0,39),
+        imagecolorallocate($im, rand(150,255), rand(150,255), rand(150,255)));
+imagestring($im, 5, 20, 10, $code, $black);    // font 5 = gdFontGiant, 9x15
+imagepng($im);
+```
+
+Contrast ITAT, whose opaque lines are drawn *over* the text and erase strokes,
+forcing the renderer to reproduce the damage so the model can learn to read
+through it. Here there is nothing to reproduce and nothing to learn.
+
+### Which makes it a lookup table
+
+The text sits on a fixed grid — origin `x = 20`, pitch `9`, rows `13..24` — and
+across the corpus there is not one black pixel outside it. Segmenting the cells
+yields exactly **36 pixel-identical clusters with zero singletons**: the full
+`0-9a-z` charset. No rotation, no antialiasing, no warp.
+
+```
+PNG ─► ink = (rgb == 0) ─► 6 cells at x=20+9k ─► 36-key lookup ─► "kqip8x"
+```
+
+So there is no model, no synthetic renderer to fit, and no fine-tune — and
+unlike Kaveri, not even a cover search, because the grid is fixed. Reading is
+six array slices and six dictionary lookups.
+
+### The font is identified, not guessed
+
+`imagestring($im, 5, ...)` is GD's built-in font 5 = **`gdFontGiant`**, 9×15
+(*not* `gdFontLarge`, which is font 4 at 8×16 — the measured 9px pitch is what
+tells them apart). The shipped bitmaps are extracted from real captchas, but the
+36 labels are checked against libgd's own `src/gdfontg.c` in
+`tests/test_ngt_font.py`, and all 36 match exactly.
+
+That check is not ceremony. The cluster→character map is 36 hand decisions read
+off a montage, and the three riskiest — `1`, `l` and `i` — are mutually 6 pixels
+apart. A hand-labelled evaluation could never catch a transposition there,
+because whoever misread the montage would misread the eval set the same way. The
+canonical font is indexed by *ASCII code*, so it is ground truth that owes
+nothing to anyone's eye.
+
+It also turns the geometry from fitted into derived: the 36 alphanumeric glyphs
+put ink in exactly font rows 3..14, so the reader's 12-row crop of the 15-row
+cell is lossless by construction rather than a bounding box that fit the sample.
+
+### Confidence is a proof, and routing is a content test
+
+Confidence is `1.0` **only** when all six cells match a template byte for byte
+*and* no ink lies outside the grid. For this generator that means the read is
+correct — it is not a softmax that happens to be saturated, which is why the
+retry gate to use here is `min_conf=1.0` rather than the usual 0.90.
+
+Matching is deliberately **exact or bust**: an inexact cell reports its nearest
+label but can never reach 1.0. With `1`/`l`/`i` only 6px apart, a
+nearest-neighbour fallback would flip them on three bad pixels and never say so.
+
+`120×40` is also the gstat numeric captcha's size — the only size collision in
+this repo — so `solve_bytes` routes it by content. gstat's palette is `#333` ink
+and `#ccc` lines and *cannot* emit a pure-black pixel (measured: 0 across 1024
+images), while NGT's thinnest possible word, six `r`, still carries 126. The
+margin is structural, not merely empirical.
+
+### Endpoint behaviour (measured)
+
+- **The UA gate is an allowlist crossed with a denylist.** The user-agent must
+  contain `mozilla` *and* must not contain a tool token: `Mozilla/5.0` and even
+  `MyBot Mozilla/5.0` return 200, while `curl/8.7.1`, `python-requests`,
+  `Wget/1.21`, `Googlebot`, an empty UA and `Mozilla/5.0 curl` all return 403.
+  That is a **fourth** distinct anti-bot posture here, and the reason the rule
+  is never to reuse a header recipe.
+- **The host rate-limits at ~10 requests per window, and a blocked request
+  refreshes the block.** At one request per 8s the successes between 429s ran
+  10, 10, 10, 10, 9, 10. An opening burst of ~50 requests in 90s tripped a 429
+  that did *not* clear across 7 minutes of backed-off polling — while going
+  silent for 5 minutes cleared it immediately. So `download_ngt.py` waits blocks
+  out instead of probing them: that is throughput, not courtesy.
+- **Drupal 7**, setting `SSESS<hash>` (secure, HttpOnly, SameSite=Strict). The
+  idiomatic implementation keeps the expected word in `$_SESSION`, so only the
+  most recently fetched image should be submittable — the Securimage/GST/ITAT
+  pattern. That is inferred from cookie behaviour, **not confirmed**: as with
+  Udyam, Kaveri and ITAT, how the answer is submitted is deliberately not
+  documented or probed.
+
+```bash
+python3 download_ngt.py 250 ngt_raw   # paces itself; waits out 429s in silence
+python3 mkglyphs_ngt.py ngt_raw --split ngt_split.json   # -> solver/ngt_glyphs.json
+python3 eval_ngt.py                   # score the held-out split
+```
+
+### Results
+
+Every read on every real captcha is an exact cover — a claim that needs **no
+labels at all** and is therefore free of any hand-reading error:
+
+| measurement | result |
+|---|---|
+| images whose six cells all match a template byte for byte | **180/180** |
+| confidence mean / p10 | **1.000 / 1.000** |
+| distinct reads | 180/180 |
+| charset coverage | 36/36 classes |
+
+Because the cover is exact, "confidence 1.0" and "correct" are the same
+statement here, which is the property none of the CRNN readers in this file can
+offer. The hand-labelled held-out score is reported separately below once the
+split is scored, and its role is to catch the one thing the label-free check
+cannot: a wrong *label* attached to a right *shape*.
+
+**Drift is loud.** If the portal changes font, grid, or layer order, no exact
+cover exists and confidence falls off 1.0 immediately instead of returning
+confident nonsense. `selfimprove.py check` watches exactly that, and for this
+kind the normal series is a flat line at 1.000, so any movement is signal rather
+than noise.
+
+---
+
 ## Self-improvement loop
 
 Captcha generators change without warning, and the failure is silent: the model
@@ -766,9 +914,10 @@ def fetch():                                 # re-request on the SAME session
 code, conf, kind, tries = solve_with_retry(fetch, min_conf=0.90, kind="securimage")
 ```
 
-Routing is by native image size (each captcha has a distinct one): 120×40 →
-`gstat`, 150×42 → `itat`, 150×50 → `epfo`, 182×50 → `gst`, 200×60 → `kaveri`,
-200×80 → `mca`, 215×80 → `securimage`, 225×80 → `udyam`.
+Routing is by native image size: 150×42 → `itat`, 150×50 → `epfo`, 182×50 →
+`gst`, 200×60 → `kaveri`, 200×80 → `mca`, 215×80 → `securimage`, 225×80 →
+`udyam`. The one exception is 120×40, shared by `gstat` and `ngt` and resolved
+by content — gstat's ink is `#333` and never pure black, NGT's is.
 
 Securimage is **session-bound**: each captcha request rotates the server-side
 code, so only the most recently fetched captcha is valid to submit.
@@ -783,15 +932,20 @@ before fetching again. The GST captcha behaves the same way.
 - `train_securimage.py`, `train_gst.py`, `train_mca.py`, `train_epfo.py`,
   `train_itat.py`, `train.py`, `gen_corpus.py`, `finetune_gst.py`,
   `finetune_mca.py`, `finetune_itat.py`
-- `mkglyphs_udyam.py` — rebuild the Udyam class library from a corpus
-  (Kaveri's equivalent lives in `solver.kaveri.extract_sprites`)
+- `mkglyphs_udyam.py`, `mkglyphs_ngt.py` — rebuild the Udyam / NGT glyph
+  libraries from a corpus (Kaveri's equivalent lives in
+  `solver.kaveri.extract_sprites`)
 - `selfimprove.py` — drift detection and gated self-training
-- `eval_securimage.py`, `eval_gst.py`, `eval_mca.py`, `eval_epfo.py`,
+- `eval_ngt.py`, `eval_securimage.py`, `eval_gst.py`, `eval_mca.py`, `eval_epfo.py`,
   `eval_kaveri.py`, `eval_udyam.py`, `eval_itat.py`
-- `download_gst.py`, `download_mca.py`, `download_epfo.py`,
+- `download_ngt.py`, `download_gst.py`, `download_mca.py`, `download_epfo.py`,
   `download_securimage.py`, `download_kaveri.py`, `download_udyam.py`,
   `download_itat.py`
 - `tests/` — `python3 -m unittest discover -s tests -v`
+- `tests/gdfontgiant_alnum.json` — the 36 alphanumeric bitmaps of GD's built-in
+  font 5, transcribed from libgd `src/gdfontg.c` (original BDF copyright Libor
+  Skarvada). Reference data for verifying the NGT labels; the reader itself does
+  not use it.
 - `examples/ecourts_securimage.py`
 - `fonts/AHGBold.ttf` — Alte Haas Grotesk Bold (via the Securimage project)
 - `fonts/DejaVu*.ttf` — DejaVu fonts (Bitstream Vera / Arev licence,

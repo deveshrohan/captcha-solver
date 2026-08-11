@@ -28,6 +28,7 @@ from PIL import Image
 
 from solver import epfo as E
 from solver import gst as G
+from solver import itat as T
 from solver import kaveri as K
 from solver import mca as M
 from solver import securimage as S
@@ -42,6 +43,7 @@ _GSTAT_MODEL = _os.path.join(_HERE, "model.pt")
 _GST_MODEL = _os.path.join(_HERE, "gst_model.pt")
 _MCA_MODEL = _os.path.join(_HERE, "mca_model.pt")
 _EPFO_MODEL = _os.path.join(_HERE, "epfo_model.pt")
+_ITAT_MODEL = _os.path.join(_HERE, "itat_model.pt")
 
 _lock = threading.Lock()
 _securi = None
@@ -49,6 +51,7 @@ _gstat = None
 _gst = None
 _mca = None
 _epfo = None
+_itat = None
 
 # (width, height) -> kind. Every supported captcha has a distinct native size.
 _SIZES = {
@@ -59,6 +62,7 @@ _SIZES = {
     (150, 50): "epfo",
     (200, 60): "kaveri",
     (225, 80): "udyam",
+    (150, 42): "itat",
 }
 
 # Characters that carry no distinguishing information in a given captcha style,
@@ -78,6 +82,11 @@ _SIZES = {
 # Udyam has no entry either, for a stronger reason: the portal never issues `0`,
 # `I` or `O` at all. Clustering 2100+ real glyphs yields exactly 33 classes and
 # those three are not among them, so the homoglyph collision cannot arise.
+#
+# ITAT has no entry for two compounding reasons: `0 1 I O` never occur in its
+# census, and the reader folds case (see solver/itat.py). Folding removes the
+# case-homoglyphs (c/C, s/S, ...) and the excluded digits remove the digit/letter
+# ones, so no ambiguous pair survives.
 AMBIGUOUS = {
     "mca": "lI",
 }
@@ -143,8 +152,20 @@ def _load_epfo():
     return _epfo
 
 
+def _load_itat():
+    global _itat
+    if _itat is None:
+        with _lock:
+            if _itat is None:
+                m = T.ItatCRNN()
+                m.load_state_dict(torch.load(_ITAT_MODEL, map_location="cpu"))
+                m.eval()
+                _itat = m
+    return _itat
+
+
 def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False,
-           kaveri=False, udyam=False):
+           kaveri=False, udyam=False, itat=False):
     """Pre-load models at scraper startup so the first live solve isn't slow.
     Also runs one dummy forward to trigger lazy CUDA/oneDNN init. Call once.
 
@@ -169,6 +190,10 @@ def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False,
         m = _load_epfo()
         with torch.no_grad():
             m(torch.zeros(1, 1, E.IN_H, E.IN_W))
+    if itat:
+        m = _load_itat()
+        with torch.no_grad():
+            m(torch.zeros(1, 1, T.IN_H, T.IN_W))
     if kaveri:
         K.glyphs()
     if udyam:
@@ -253,6 +278,19 @@ def solve_epfo(image):
     return text[0], float(conf[0])
 
 
+def solve_itat(image):
+    """Solve an ITAT portal captcha (150x42, 6 mixed-case alnum chars).
+    Returns (text, confidence).
+
+    The read is CASE-INSENSITIVE: the text is uppercase and matches the display
+    up to case. confidence is the beam decoder's geometric-mean per-character
+    probability."""
+    pil = _to_pil_rgb(image)
+    arr = T.load_real(pil)[None]
+    text, conf = T.predict(_load_itat(), arr, "cpu")
+    return text[0], float(conf[0])
+
+
 def solve_kaveri(image):
     """Solve a Kaveri portal captcha (200x60, 6 uppercase-alnum chars).
     Returns (text, confidence).
@@ -296,6 +334,8 @@ def solve_bytes(image, kind=None):
         text, conf = solve_mca(pil)
     elif kind == "epfo":
         text, conf = solve_epfo(pil)
+    elif kind == "itat":
+        text, conf = solve_itat(pil)
     elif kind == "kaveri":
         # Pass the ORIGINAL object, not `pil`: this captcha is RGBA and PIL maps
         # transparent pixels to (0,0,0) on convert("RGB"), which is exactly the

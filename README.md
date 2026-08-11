@@ -20,6 +20,7 @@ and runs on CPU with the included weights.
 | epfo | 150×50 | 5 alnum, gradient background | background subtraction → sprite-exact synth → CRNN+CTC | **100% exact (44/44)** |
 | kaveri | 200×60 | 6 uppercase-alnum, lines under text | exact ink mask → sprite cover, **no model** | **210/210 exact and unique** |
 | udyam | 225×80 | 6 uppercase-alnum, lines over text | luminance ink mask → template cover, **no model** | **36/36 exact**, margin > 0 on 2520/2520 glyphs |
+| itat | 150×42 | 6 mixed-case alnum, blue lines over text | darkness projection → CRNN+CTC, case-insensitive + augmented real fine-tune | 36.7% exact / 85.0% char (11/30), ~84% within 4 fetches |
 
 ```bash
 pip install torch numpy pillow       # inference deps (scipy is training-only)
@@ -539,6 +540,182 @@ validate contract would mean posting identifiers to a live government portal.
 
 ---
 
+## ITAT portal captcha (150×42)
+
+`itat.gov.in/captcha/show` — six mixed-case alphanumeric characters, near-black
+and antialiased, each at its own **random rotation**, drawn on white under a
+dense field of **light-blue straight lines and colour speckle**. This is the
+Income Tax Appellate Tribunal's case-status / e-filing captcha.
+
+### Identifying the generator
+
+Two fingerprints pin it to **CodeIgniter's `create_captcha()` GD helper**:
+
+1. every response sets the CodeIgniter session cookies `ci_session`,
+   `csrf_cookie_name` and `uid`; and
+2. the PNG carries libgd's `pHYs` chunk = 3780 ppm (96 DPI) — the same PHP-GD
+   signature as the numeric captcha at the top of this file, and the marker that
+   it is drawn by GD rather than Java's `ImageIO` (GST) or .NET (Udyam).
+
+The response's `Content-Type` is even `text/html`: the controller just echoes
+the image bytes, so validity is the PNG magic, not the header. The helper is
+heavily customised from stock — truecolor (3000+ colours per image, so
+`imagecreatetruecolor`, not the palette default), black antialiased text, no
+border, and light-blue **line** noise rather than the stock pink spiral — but
+the create_captcha DNA is unmistakable: one TTF face for the whole word, each
+glyph placed with a random angle.
+
+### The ink is colour-separable, but the noise fragments it
+
+The text is near-black `(0,0,0)` while every noise colour is bright — the lines
+cluster around `(151,206,252)` and the speckle is scattered light dots. So a
+**darkness projection** collapses the two:
+
+```
+d = 1 - max(r, g, b) / 255      # ink -> ~1, white -> 0, light-blue line -> ~0.01
+```
+
+That is the whole preprocessing story, and it is applied identically to real and
+synthetic images, so there is no train/test skew. What it does **not** do is
+repair the text: the noise is drawn **over** the glyphs (632 blue pixels sit
+flanked by ink on both sides across 20 images — the signature of a line cutting
+through a stroke), and where an opaque line crosses, the darkness there drops to
+~0, punching a hole. This is Udyam's layering, but Udyam's lines are
+alpha-blended so a luminance cut *recovers* the crossed pixel; ITAT's are opaque
+enough to erase it. Rather than try to fill the holes, the generator
+**reproduces** them — it draws the same blue-lines-over-text before projecting —
+so the model trains on the same broken strokes it will read. That is the
+Securimage lesson (model the noise that touches the ink), reached through a
+colour projection that discards the noise that doesn't.
+
+### Why a model, and why case-insensitive
+
+Random per-character rotation rules out the template-cover approach that reads
+Kaveri, Udyam and EPFO: those need pixel-identical fixed-pose glyphs, and a
+random angle destroys that. So ITAT is a whole-image **CRNN + CTC** over the
+darkness map, like Securimage and MCA.
+
+The captcha renders **mixed case** — lowercase `p`, `u`, `w` with descenders and
+x-heights appear next to capitals. Case is read **case-insensitively**: every
+glyph folds to one uppercase class. Two reasons. First, for full-height letters
+(`K`/`k`, `S`/`S` at cap size) case is not recoverable from the glyph at all —
+the wall that caps the case-*sensitive* MCA reader at 75%. Second, the submit
+contract could not be verified (that would mean posting to a live ITAT form), so
+whether the portal even validates case is unknown, and folding is the choice
+that fails safe if it does not. The generator therefore renders each letter as
+lower- **or** upper-case at random while labelling the one folded class, so the
+model learns both glyph shapes map to it.
+
+Folding case also removes the case-homoglyphs (`c`/`C`, `s`/`S`, …). The census
+over the labelled corpus shows `0 1 I O` never occur, which removes the
+digit/letter homoglyphs too. So — as for EPFO and Udyam — **no ambiguous pair
+survives**, and there is no `AMBIGUOUS` entry to retry around.
+
+### The renderer pins geometry, because the font is not identified
+
+The real face is a **thin, narrow** sans: six glyphs span ~116px (aspect ~0.55,
+i.e. condensed) at ~31px cap height with stroke/cap ~0.07. None of the bundled
+faces is it, and — as with MCA — it could not be identified. So the generator
+does what the GST reader does with its font: it **pins the geometry** rather than
+trusting the face. Glyphs are laid out (DejaVu Sans Condensed, the narrowest
+bundled face) with proportional advance and per-character rotation, then the
+whole word's ink bbox is scaled to the measured real target and lightly eroded
+toward the measured stroke width. The synthetic ink statistics then match the
+real corpus — bbox 116×31, stroke ~2.2px — leaving one residual gap: the
+letterform *weight* (DejaVu is denser than the real face). That gap is exactly
+what real-label fine-tuning closes, the same division of labour as MCA.
+
+### Endpoint behaviour (measured)
+
+- **No user-agent gate at all.** `curl/8.x`, `python-requests`, an empty UA,
+  `Mozilla/5.0` and even `x` every one returns 200 with a valid PNG. That is a
+  *third* distinct anti-bot posture in this repo, and the reason the memory note
+  says never to reuse a header recipe: Kaveri and Udyam run a UA **denylist**,
+  MCA wants most of a real Chrome header set, GST rejects a spoofed browser UA —
+  and ITAT checks the UA not at all.
+- **Session-bound (inferred, not confirmed).** Within one cookie jar `ci_session`
+  is minted on the first fetch and then persists, and this is a CodeIgniter app,
+  whose idiomatic captcha stores the expected word in the session. The natural
+  consequence is that only the most recently fetched image is submittable — the
+  Securimage/Udyam pattern. That is read off the cookie behaviour, not a form
+  submission, so `download_itat.py` fetches each captcha on a **fresh session**
+  (no jar) to get independent samples, and a live caller should fetch and submit
+  through one jar, treating only the last image as valid. How the answer is
+  submitted is deliberately not documented, for the same reason as Udyam.
+
+```bash
+python3 download_itat.py 400 itat_raw  # no UA gate; fresh session per image
+python3 train_itat.py 15               # synthetic-only -> solver/itat_model.pt
+python3 finetune_itat.py 30            # augmented fine-tune on hand-labeled reals
+python3 eval_itat.py                   # score the held-out split (--all for every label)
+```
+
+### Results (held-out real captchas, case-insensitive)
+
+111 captchas were hand-labelled (adjudicated against the model's reads at 8×
+zoom, since cold-reading this noise is error-prone) and pinned into a seeded
+split — 61 train / 20 dev / 30 **test**. The test 30 are never trained on and
+never used to pick the epoch.
+
+| model | test exact | test char |
+|---|---|---|
+| synthetic-only (no real image used at all) | 0/30 | 20.6% |
+| + real fine-tune on 61 labels | 5/30 (16.7%) | 76% |
+| **+ affine augmentation of the reals** | **11/30 (36.7%)** | **85.0%** |
+
+Two things drove the numbers, in order of size:
+
+**The synthetic base barely transfers — 20.6% char — because the font is wrong.**
+The real face is a thin sans that could not be identified, and DejaVu Condensed
+(pinned to the right geometry) is still visibly heavier; the CRNN learns
+DejaVu-specific features that do not fire on the real strokes (every glyph
+collapses toward `L`/`T`/`F` on real input). This is a larger domain gap than
+MCA's (whose synthetic already read reals at ~81% char), and it is why a real
+fine-tune is not optional here.
+
+**Augmentation, not more synthetic, was the lever.** Fine-tuning on 61 real
+labels overfit hard — 100% on the train images, ~70% on held-out — because
+oversampling 61 images verbatim just memorises pixels. Showing each one under a
+small random affine jitter each epoch (`finetune_itat.py:augment`) turned 61
+images into effectively many and lifted held-out exact from 16.7% to 36.7% and
+char from 76% to 85%, with no new labels. The dev-exact rate moved 1/20 → 8/20 —
+the memorisation breaking.
+
+**Retry does the rest.** The captcha is length-6, homoglyph-free and free to
+re-request, so a wrong read costs a fetch, not a failed submission. Submitting
+every read on a fresh captcha each try (single-shot exact 36.7%):
+
+| fetches | cumulative success |
+|---|---|
+| 1 | 36.7% |
+| 2 | 60% |
+| 3 | 75% |
+| 4 | **84%** |
+| 5 | 90% |
+
+Confidence is only a weak gate (mean 0.938, yet 63% of single reads are
+imperfect; at a 0.95 cut, 57% of reads pass at 53% exact) — the same "confidence
+is not accuracy" caveat as GST — so the reliable knob is the retry count, not a
+threshold.
+
+**The ceiling here is labels, as it was for MCA.** 61 training images is thin for
+31 classes, the residual errors are genuine shape/rotation confusions
+(`D`↔`P`, `Y`↔`V`, `G`↔`6`, `8`↔`9`) that more real data eats, and the
+hand-labels themselves carry read noise on this hard captcha, which caps the
+measurable char rate below the model's true rate. The lever from here is more
+labels, not more renderer archaeology.
+
+### Caveat: case-sensitivity is unverified
+
+The reader folds case because case is partly unreadable and the submit contract
+is unverified. If a portal check ever shows ITAT validates case-sensitively, this
+reader's folded output would need re-casing — which the glyph often cannot
+support (see the MCA section on why case is only partly recoverable). Treat the
+case-insensitive number as the honest ceiling for what the image supports, not as
+a claim that a case-sensitive submission would match.
+
+---
+
 ## Self-improvement loop
 
 Captcha generators change without warning, and the failure is silent: the model
@@ -590,7 +767,8 @@ code, conf, kind, tries = solve_with_retry(fetch, min_conf=0.90, kind="securimag
 ```
 
 Routing is by native image size (each captcha has a distinct one): 120×40 →
-`gstat`, 150×50 → `epfo`, 182×50 → `gst`, 200×80 → `mca`, 215×80 → `securimage`.
+`gstat`, 150×42 → `itat`, 150×50 → `epfo`, 182×50 → `gst`, 200×60 → `kaveri`,
+200×80 → `mca`, 215×80 → `securimage`, 225×80 → `udyam`.
 
 Securimage is **session-bound**: each captcha request rotates the server-side
 code, so only the most recently fetched captcha is valid to submit.
@@ -603,16 +781,18 @@ before fetching again. The GST captcha behaves the same way.
 
 - `solver/` — renderers, models, decode, pipeline, `api.py`
 - `train_securimage.py`, `train_gst.py`, `train_mca.py`, `train_epfo.py`,
-  `train.py`, `gen_corpus.py`, `finetune_gst.py`, `finetune_mca.py`
+  `train_itat.py`, `train.py`, `gen_corpus.py`, `finetune_gst.py`,
+  `finetune_mca.py`, `finetune_itat.py`
 - `mkglyphs_udyam.py` — rebuild the Udyam class library from a corpus
   (Kaveri's equivalent lives in `solver.kaveri.extract_sprites`)
 - `selfimprove.py` — drift detection and gated self-training
 - `eval_securimage.py`, `eval_gst.py`, `eval_mca.py`, `eval_epfo.py`,
-  `eval_kaveri.py`, `eval_udyam.py`
+  `eval_kaveri.py`, `eval_udyam.py`, `eval_itat.py`
 - `download_gst.py`, `download_mca.py`, `download_epfo.py`,
-  `download_securimage.py`, `download_kaveri.py`, `download_udyam.py`
+  `download_securimage.py`, `download_kaveri.py`, `download_udyam.py`,
+  `download_itat.py`
 - `tests/` — `python3 -m unittest discover -s tests -v`
 - `examples/ecourts_securimage.py`
 - `fonts/AHGBold.ttf` — Alte Haas Grotesk Bold (via the Securimage project)
 - `fonts/DejaVu*.ttf` — DejaVu fonts (Bitstream Vera / Arev licence,
-  `fonts/DejaVu-LICENSE`), used by the GST and MCA renderers
+  `fonts/DejaVu-LICENSE`), used by the GST, MCA and ITAT renderers

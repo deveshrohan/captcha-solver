@@ -26,6 +26,7 @@ import numpy as np
 import torch
 from PIL import Image
 
+from solver import bharatkosh as BK
 from solver import epfo as E
 from solver import gst as G
 from solver import itat as T
@@ -45,6 +46,7 @@ _GST_MODEL = _os.path.join(_HERE, "gst_model.pt")
 _MCA_MODEL = _os.path.join(_HERE, "mca_model.pt")
 _EPFO_MODEL = _os.path.join(_HERE, "epfo_model.pt")
 _ITAT_MODEL = _os.path.join(_HERE, "itat_model.pt")
+_BHARATKOSH_MODEL = _os.path.join(_HERE, "bharatkosh_model.pt")
 
 _lock = threading.Lock()
 _securi = None
@@ -53,6 +55,7 @@ _gst = None
 _mca = None
 _epfo = None
 _itat = None
+_bharatkosh = None
 
 def _route_120x40(pil):
     """Split the one size collision in the repo: gstat and NGT are both 120x40.
@@ -81,6 +84,7 @@ _SIZES = {
     (200, 60): "kaveri",
     (225, 80): "udyam",
     (150, 42): "itat",
+    (150, 40): "bharatkosh",           # ITAT is 150x42 -- no collision
 }
 
 # Characters that carry no distinguishing information in a given captcha style,
@@ -190,8 +194,20 @@ def _load_itat():
     return _itat
 
 
+def _load_bharatkosh():
+    global _bharatkosh
+    if _bharatkosh is None:
+        with _lock:
+            if _bharatkosh is None:
+                m = BK.BharatkoshCRNN()
+                m.load_state_dict(torch.load(_BHARATKOSH_MODEL, map_location="cpu"))
+                m.eval()
+                _bharatkosh = m
+    return _bharatkosh
+
+
 def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False,
-           kaveri=False, udyam=False, itat=False, ngt=False):
+           kaveri=False, udyam=False, itat=False, ngt=False, bharatkosh=False):
     """Pre-load models at scraper startup so the first live solve isn't slow.
     Also runs one dummy forward to trigger lazy CUDA/oneDNN init. Call once.
 
@@ -220,6 +236,10 @@ def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False,
         m = _load_itat()
         with torch.no_grad():
             m(torch.zeros(1, 1, T.IN_H, T.IN_W))
+    if bharatkosh:
+        m = _load_bharatkosh()
+        with torch.no_grad():
+            m(torch.zeros(1, 1, BK.IN_H, BK.IN_W))
     if kaveri:
         K.glyphs()
     if udyam:
@@ -359,6 +379,60 @@ def solve_ngt(image):
     return N.solve_image(image)
 
 
+def solve_bharatkosh(image):
+    """Solve ONE render of a Bharatkosh captcha (150x40, 6 mixed-case alnum
+    chars, case-sensitive read). Returns (text, confidence).
+
+    Prefer `solve_bharatkosh_group`: a single render loses six rows to the two
+    opaque bars, and what they hide is sometimes the whole difference between two
+    characters (a tilted `A` with one foot in the bar is a `4`)."""
+    return solve_bharatkosh_group([image])
+
+
+def solve_bharatkosh_group(images):
+    """Solve a Bharatkosh captcha from several renders of the SAME answer.
+    Returns (text, confidence).
+
+    `GenerateCaptcha?New=0` re-renders the session's existing text with fresh
+    fonts, rotations and colours, so fetch once with `New=1`, then `New=0` a few
+    more times on the same session and pass every image here. Each candidate
+    word is scored by its summed CTC log-likelihood over all renders; confidence
+    is the winner's posterior over the candidates, so it rises as renders agree.
+
+    That a re-render leaves the submittable answer unchanged is inferred from
+    the text staying constant, not confirmed by posting a form."""
+    arr = np.stack([BK.load_real(_to_pil_rgb(im)) for im in images])
+    return BK.predict_group(_load_bharatkosh(), arr, "cpu")
+
+
+def solve_bharatkosh_with_rerender(fetch, min_conf=0.90, max_renders=5,
+                                   max_texts=3):
+    """Fetch-and-solve for Bharatkosh, spending re-renders before new texts.
+
+    `fetch(new)` returns captcha image bytes through the session the form will
+    be submitted on: `new=True` must request `?New=1` (a new text), `new=False`
+    `?New=0` (the same text, re-rendered). Returns (text, confidence, renders,
+    texts).
+
+    Re-rendering never changes the session's answer, so unlike
+    `solve_with_retry` a low-confidence read costs another look at the SAME
+    word rather than a gamble on a new one. Only when `max_renders` looks still
+    do not clear `min_conf` is a new text drawn. The returned read always
+    belongs to the text the session currently holds."""
+    text, conf, n = "", 0.0, 0
+    for t in range(1, max_texts + 1):
+        images = [fetch(True)]
+        while True:
+            text, conf = solve_bharatkosh_group(images)
+            n = len(images)
+            if conf >= min_conf or n >= max_renders:
+                break
+            images.append(fetch(False))
+        if conf >= min_conf:
+            return text, conf, n, t
+    return text, conf, n, max_texts
+
+
 def solve_bytes(image, kind=None):
     """Auto-route and solve. Returns (text, confidence, kind).
 
@@ -382,6 +456,8 @@ def solve_bytes(image, kind=None):
         text, conf = solve_epfo(pil)
     elif kind == "itat":
         text, conf = solve_itat(pil)
+    elif kind == "bharatkosh":
+        text, conf = solve_bharatkosh(pil)
     elif kind == "kaveri":
         # Pass the ORIGINAL object, not `pil`: this captcha is RGBA and PIL maps
         # transparent pixels to (0,0,0) on convert("RGB"), which is exactly the

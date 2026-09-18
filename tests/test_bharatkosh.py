@@ -142,6 +142,27 @@ class TestModel(unittest.TestCase):
         self.assertGreaterEqual(out.shape[1], 2 * B.LENGTH + 1)
 
 
+class TestApi(unittest.TestCase):
+    def test_routes_by_size(self):
+        from solver import api
+        self.assertEqual(api._SIZES[(150, 40)], "bharatkosh")
+        self.assertEqual(api._SIZES[(150, 42)], "itat")
+
+    def test_rerender_helper_spends_renders_before_texts(self):
+        from solver import api
+        calls = []
+        confs = iter([0.3, 0.5, 0.95])
+        orig = api.solve_bharatkosh_group
+        api.solve_bharatkosh_group = lambda ims: ("abc123", next(confs))
+        try:
+            out = api.solve_bharatkosh_with_rerender(
+                lambda new: calls.append(new) or b"", min_conf=0.9)
+        finally:
+            api.solve_bharatkosh_group = orig
+        self.assertEqual(calls, [True, False, False])    # one text, three looks
+        self.assertEqual(out, ("abc123", 0.95, 3, 1))
+
+
 @unittest.skipUnless(os.path.isdir(CORPUS), "real corpus not present")
 class TestRealCorpus(unittest.TestCase):
     def test_bars_where_measured(self):

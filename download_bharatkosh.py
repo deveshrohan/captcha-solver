@@ -62,9 +62,12 @@ def fetch(jar, new):
 
 
 def main():
+    # RENDERS is optional so `selfimprove.py harvest` can call this with the
+    # (n, outdir) shape every other downloader takes.
+    rest = sys.argv[2:]
     groups = int(sys.argv[1]) if len(sys.argv) > 1 else 40
-    renders = int(sys.argv[2]) if len(sys.argv) > 2 else 5
-    outdir = sys.argv[3] if len(sys.argv) > 3 else "bharatkosh_raw"
+    renders = int(rest.pop(0)) if rest and rest[0].isdigit() else 5
+    outdir = rest[0] if rest else "bharatkosh_raw"
     os.makedirs(outdir, exist_ok=True)
     jar = os.path.join(outdir, ".cookies")
 

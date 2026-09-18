@@ -87,6 +87,19 @@ KINDS = {
                 charset="0123456789abcdefghijklmnopqrstuvwxyz",
                 corpus="ngt_raw", glob="n*.png", labels="ngt_labels.json",
                 fetch=["python3", "download_ngt.py"], model=None),
+    # The one kind whose corpus comes in GROUPS: `?New=0` re-renders the same
+    # answer, so download_bharatkosh.py saves b0000_r0..r4 per text and
+    # bharatkosh_labels.json is keyed by group id, not by path. `check` here
+    # watches SINGLE-render reads (the hardest setting, so the most sensitive
+    # to drift) and scores labels on render 0 of each held-out group; the
+    # voted numbers that actually ship come from eval_bharatkosh.py.
+    # `--n` counts groups, not images.
+    "bharatkosh": dict(size=(150, 40), length=6,
+                       charset="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+                       corpus="bharatkosh_raw", glob="b*.png",
+                       labels="bharatkosh_labels.json",
+                       fetch=["python3", "download_bharatkosh.py"],
+                       model="solver/bharatkosh_model.pt"),
 }
 
 
@@ -160,8 +173,12 @@ def labelled_accuracy(kind):
     held_out = None
     if os.path.exists(split_file):
         held_out = set(json.load(open(split_file)).get("test", []))
-    items = [(p, l) for p, l in sorted(labels.items())
-             if os.path.exists(p) and (held_out is None or p in held_out)]
+    # group-keyed labels (bharatkosh): score render 0 of each group
+    labels = {(k if os.path.exists(k) else
+               os.path.join(cfg["corpus"], k + "_r0.png")): (k, l)
+              for k, l in labels.items()}
+    items = [(p, l) for p, (k, l) in sorted(labels.items())
+             if os.path.exists(p) and (held_out is None or k in held_out)]
     if not items:
         return None
     got = _solve_many([p for p, _ in items], kind)
@@ -247,7 +264,8 @@ def cmd_adapt(args):
               f"Run `check` to see whether it has.")
         return 1
     script = {"gst": "finetune_gst.py", "mca": "finetune_mca.py",
-              "epfo": "finetune_epfo.py"}.get(kind)
+              "epfo": "finetune_epfo.py",
+              "bharatkosh": "finetune_bharatkosh.py"}.get(kind)
     if not script or not os.path.exists(script):
         print(f"no finetune script for {kind}")
         return 1

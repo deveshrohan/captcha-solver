@@ -7,6 +7,7 @@
 !solver/mca_model.pt
 !solver/epfo_model.pt
 !solver/itat_model.pt
+!solver/bharatkosh_model.pt
 
 # Scraped captcha images and evaluation data — NOT distributed (they target live
 # third-party endpoints). Regenerate synthetic data with the renderer instead.

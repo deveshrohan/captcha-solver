@@ -13,7 +13,6 @@
 "test": [
 "b0001",
 "b0002",
-"b0005",
 "b0006",
 "b0008",
 "b0009",
@@ -27,7 +26,15 @@
 "b0024",
 "b0029",
 "b0030",
-"b0032"
+"b0032",
+"b0034",
+"b0035",
+"b0041",
+"b0043",
+"b0044",
+"b0045",
+"b0048",
+"b0049"
 ],
 "note": "every hand-labelled group is held out; training uses synthetic + pseudo-labels only"
 }

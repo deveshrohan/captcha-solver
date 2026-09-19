@@ -11,8 +11,8 @@ is the drift signal. It CANNOT catch a confusion every render shares.
 LEG 2 -- hand-labelled groups, held out. The split is pinned by GROUP id in
 bharatkosh_split.json (never by image: renders of a test answer must not leak
 into training) and every hand-labelled group is held out -- training uses
-synthetic data and agreement pseudo-labels only. Reported as single-render
-exact, and voted exact at K=3 (mean over all 10 subsets) and K=5, each
+synthetic data and agreement pseudo-labels only. Reported as voted exact at
+every K from 1 (a single render) to 5, K<5 averaged over all K-subsets, each
 case-sensitive and case-folded. Case is a human guess for `c s v x ...` under
 per-glyph random size, so the folded column is the one the labels can support.
 
@@ -31,9 +31,10 @@ import torch
 
 from solver import bharatkosh as B
 
-ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
-MODEL = ARGS[0] if ARGS else "solver/bharatkosh_model.pt"
 SPLIT_NAME = sys.argv[sys.argv.index("--split") + 1] if "--split" in sys.argv else "test"
+ARGS = [a for i, a in enumerate(sys.argv[1:], 1)
+        if not a.startswith("--") and sys.argv[i - 1] != "--split"]
+MODEL = ARGS[0] if ARGS else "solver/bharatkosh_model.pt"
 RAW = "bharatkosh_raw"
 LABELS = "bharatkosh_labels.json"
 SPLIT = "bharatkosh_split.json"
@@ -62,8 +63,13 @@ def main():
     model = B.BharatkoshCRNN()
     model.load_state_dict(torch.load(MODEL, map_location="cpu"))
     G = groups()
-    lps = {g: B.log_probs(model, np.stack([B.load_real(p) for p in ps]))
-           for g, ps in G.items()}
+    lps = {}
+    for g, ps in G.items():
+        try:
+            lps[g] = B.log_probs(model, np.stack([B.load_real(p) for p in ps]))
+        except OSError:                 # a render still being written by a harvest
+            print(f"  skipping {g}: unreadable render")
+    G = {g: G[g] for g in lps}
     single = {g: [B.vote([lp])[0] for lp in lp5] for g, lp5 in lps.items()}
     voted = {g: B.vote(list(lp5)) for g, lp5 in lps.items()}
 
@@ -87,11 +93,13 @@ def main():
         cf = sum(p.lower() == l.lower() for p, l in pairs)
         return f"{cs}/{len(pairs)} ({cs/len(pairs):.1%})   folded {cf}/{len(pairs)} ({cf/len(pairs):.1%})"
 
-    print("  single render  ", rate((s, labels[g]) for g in ids for s in single[g]))
-    print("  voted K=3      ", rate((B.vote([lps[g][i] for i in sub])[0], labels[g])
-                                    for g in ids
-                                    for sub in itertools.combinations(range(len(lps[g])), 3)))
-    print("  voted K=5      ", rate((voted[g][0], labels[g]) for g in ids))
+    # K=1 is the single-render read; K=2..4 average over every K-subset of a
+    # group's renders, so each K uses all the data rather than one arbitrary pick
+    for k in range(1, 6):
+        pairs = ((B.vote([lps[g][i] for i in sub])[0], labels[g])
+                 for g in ids
+                 for sub in itertools.combinations(range(len(lps[g])), k))
+        print(f"  voted K={k}      ", rate(pairs))
     ch = sum(a == b for g in ids for a, b in zip(voted[g][0], labels[g]))
     print(f"  voted K=5 chars {ch}/{len(ids) * B.LENGTH}")
     for g in ids:

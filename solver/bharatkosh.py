@@ -38,13 +38,29 @@ import torch.nn as nn
 import torch.nn.functional as F
 from PIL import Image, ImageDraw, ImageFont
 
-# Case-sensitive, full alnum. Whether the portal validates case could not be
-# checked (that would mean posting to a live government form), so the reader
-# keeps case and eval reports both case-sensitive and folded scores. Exclusions
-# are decided by a label census, not assumed -- see eval_bharatkosh.py.
-CHARSET = ("0123456789"
-           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-           "abcdefghijklmnopqrstuvwxyz")
+# Case-sensitive alnum MINUS `0 1 I O i l o w` -- 54 classes. The exclusions
+# are measured, not assumed, and by two independent routes:
+#
+# * the synthetic-only model's voted reads of 297 harvested groups (1782 chars,
+#   ~29 expected per class) contain all eight exactly ONCE between them (one
+#   `o`). A model can mislabel a class but cannot hide it: a real `O` has to
+#   come out as SOMETHING, yet `0`, `O` and `o` sum to 1 against ~86 expected,
+#   and `1 I i l` to 0 against ~115. `W` sits at 33 alone, i.e. `w` is not
+#   being folded into it;
+# * the 204 hand-read characters contain none of them either (after `b0005`,
+#   whose one `O` the census flagged, was re-read and moved to ambiguous);
+#   P(no draw from these 8 in 204 uniform draws over 62) = 5.8e-13.
+#
+# It is the classic confusable-glyph blocklist plus `w` (~ `W` once size is
+# random per glyph). Carrying the impossible classes was not harmless: they
+# were the top single-render confusions (`j->i` 14, `p->o` 13, `M->I` 3).
+# Case is kept -- every other case pair appears in both cases at ~uniform
+# rates -- and eval reports case-sensitive and folded scores, because whether
+# the portal validates case could not be checked without posting a form.
+CHARSET = ("23456789"
+           "ABCDEFGHJKLMNPQRSTUVWXYZ"
+           "abcdefghjkmnpqrstuvxyz")
+EXCLUDED = "01IOilow"
 CH2I = {c: i for i, c in enumerate(CHARSET)}
 I2CH = {i: c for i, c in enumerate(CHARSET)}
 N_CLASSES = len(CHARSET)

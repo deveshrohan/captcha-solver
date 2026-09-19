@@ -60,6 +60,39 @@ class TestCharset(unittest.TestCase):
         self.assertIn("a", B.CHARSET)
         self.assertIn("A", B.CHARSET)
 
+    def test_census_exclusions(self):
+        # 0 1 I O i l o w never occur (see the CHARSET comment for the census)
+        self.assertEqual(B.N_CLASSES, 54)
+        self.assertFalse(set(B.EXCLUDED) & set(B.CHARSET))
+        self.assertIn("W", B.CHARSET)     # only the lowercase w is absent
+
+
+@unittest.skipUnless(os.path.exists(os.path.join(ROOT, "bharatkosh_labels.json")),
+                     "labels not present")
+class TestLabelFiles(unittest.TestCase):
+    """The eval is only honest if these invariants hold."""
+
+    def setUp(self):
+        import json
+        j = lambda f: json.load(open(os.path.join(ROOT, f)))
+        self.labels = j("bharatkosh_labels.json")
+        self.amb = set(j("bharatkosh_ambiguous.json"))
+        self.split = j("bharatkosh_split.json")
+
+    def test_labels_are_in_charset_and_length(self):
+        for g, l in self.labels.items():
+            self.assertEqual(len(l), B.LENGTH, g)
+            self.assertTrue(set(l) <= set(B.CHARSET), (g, l))
+
+    def test_ambiguous_never_labelled(self):
+        self.assertFalse(self.amb & set(self.labels))
+
+    def test_split_is_disjoint_and_covers_every_label(self):
+        dev, test = set(self.split["dev"]), set(self.split["test"])
+        self.assertFalse(dev & test)
+        # every hand label is held out: nothing labelled is left to train on
+        self.assertEqual(dev | test, set(self.labels))
+
 
 class TestInput(unittest.TestCase):
     def _img(self):

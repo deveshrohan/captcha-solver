@@ -58,7 +58,10 @@ def fetch(jar, new):
         ["curl", "-s", "--max-time", "25", "-b", jar, "-c", jar,
          "%s?New=%d" % (URL, 1 if new else 0)],
         capture_output=True).stdout
-    return out if out.startswith(PNG_MAGIC) else None
+    # a complete PNG, not just a PNG-shaped start: a cut-off body must not be
+    # saved into a group as if it were a render
+    ok = out.startswith(PNG_MAGIC) and out[-8:-4] == b"IEND"
+    return out if ok else None
 
 
 def main():

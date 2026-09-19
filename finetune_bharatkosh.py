@@ -38,6 +38,10 @@ from train_bharatkosh import dev_set, gen, score
 MODEL = "solver/bharatkosh_model.pt"
 RAW = "bharatkosh_raw"
 LABELS = "bharatkosh_labels.json"
+# The groups this fine-tune saw and trained on. eval_bharatkosh.py reads it so
+# the label-free leg is ALSO reported on fresh groups: on trained-on groups,
+# render/vote agreement rising is memorisation, not accuracy.
+PSEUDO = "bharatkosh_pseudo.json"
 EPOCHS = int(sys.argv[1]) if len(sys.argv) > 1 else 12
 BS = 128
 LR = 3e-4
@@ -72,7 +76,7 @@ def pseudo_labels(model):
     for f in sorted(os.listdir(RAW)):
         if f.endswith(".png") and f[:5] not in held_out:
             groups.setdefault(f[:5], []).append(os.path.join(RAW, f))
-    X, Y, seen = [], [], 0
+    X, Y, ids, seen = [], [], [], 0
     for g, paths in groups.items():
         imgs = np.stack([B.load_real(p) for p in paths])
         lps = list(B.log_probs(model, imgs))
@@ -82,7 +86,13 @@ def pseudo_labels(model):
         if conf >= MIN_CONF and agree >= min(MIN_AGREE, len(lps)) and len(word) == B.LENGTH:
             X.append(imgs)
             Y += [B.encode_label(word)] * len(imgs)
+            ids.append(g)
     print(f"pseudo-labelled {len(X)}/{seen} groups ({len(Y)} renders)", flush=True)
+    # `seen` too, not just `trained`: a group the rule REJECTED was picked out by
+    # the model's own disagreement, so it is no unbiased sample either. Only
+    # groups harvested after this ran are fresh.
+    json.dump({"trained": sorted(ids), "seen": sorted(groups)}, open(PSEUDO, "w"),
+              indent=0)
     return np.concatenate(X), np.array(Y, np.int64)
 
 

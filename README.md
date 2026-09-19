@@ -22,13 +22,15 @@ Local, synthetic-trained captcha readers. `solve.py` auto-routes by image size
 | udyam | 225×80 | 6 uppercase-alnum, lines over text | luminance ink mask → template cover, **no model** | **36/36 exact**, margin > 0 on 2520/2520 glyphs |
 | itat | 150×42 | 6 mixed-case alnum, blue lines over text | darkness projection → CRNN+CTC, case-insensitive + augmented real fine-tune | 36.7% exact / 85.0% char (11/30), ~84% within 4 fetches |
 | ngt | 120×40 | 6 lowercase-alnum, pastel speckle under text | exact black mask → fixed-grid glyph lookup, **no model** | **40/40 exact** held-out, 239/239 exact cover |
+| bharatkosh | 150×40 | 6 mixed-case alnum, per-glyph face/size/rotation, two fixed bars | blinded bar rows → CRNN+CTC, **vote across `New=0` re-renders**, label-free fine-tune | **83.3% exact (20/24), 97.2% char** voted over 5 renders; 87.5% case-folded; 82.5% from one render |
 
 ```bash
 pip install torch numpy pillow       # inference deps (scipy is training-only)
 python solve.py path/to/captcha.png  # auto-routes by size
 ```
 
-Programmatic use: `solver/api.py` — `solve_bytes`, `solve_with_retry`, `warmup`.
+Programmatic use: `solver/api.py` — `solve_bytes`, `solve_with_retry`, `warmup`,
+and for Bharatkosh `solve_bharatkosh_group` / `solve_bharatkosh_with_rerender`.
 
 ---
 
@@ -887,6 +889,207 @@ than noise.
 
 ---
 
+## Bharatkosh portal captcha (150×40)
+
+`bharatkosh.gov.in/NTRPHome/GenerateCaptcha` — the Non-Tax Receipt Portal. Six
+mixed-case alphanumeric characters, **each drawn in its own typeface, size,
+rotation and two-colour gradient**, over a few hundred pastel specks, with two
+opaque pastel bars ruled across the whole image. It is the hardest single image
+in this repo, and the only portal here that will show you the same answer
+again, drawn differently, whenever you ask.
+
+### Identifying the generator
+
+The stack is **ASP.NET MVC** (`ASP.NET_SessionId`), and the PNG carries
+`sRGB` + `gAMA` + `pHYs` chunks with zlib header `78 5e` — **GDI+
+(`System.Drawing`)**, not libgd (whose tell is a lone `pHYs`) and not Java
+ImageIO (no `pHYs`, `78 da`). It is served as `Content-Type: image/gif`, which is
+simply wrong: the body is a PNG, so validity is the magic, not the header.
+
+### What is fixed, and what is not
+
+Measured over 1497 harvested images (300 answers × 5 renders):
+
+| property | measurement |
+|---|---|
+| size / mode | `150×40` RGBA, alpha always 255 |
+| glyphs | per glyph: own face (sans, serif and rounded in one image), size, rotation up to ~±30°, two-colour gradient fill; neighbours overlap |
+| bars | **rows 14–16 and 24–26, x = 1..149, in 1497/1497 images**, one flat colour each, drawn **last** — nothing survives under them |
+| specks | ~340 per image, pastel (min channel p10 151); drawn **under** the text: 3 pastel pixels sit inside dark ink across 30,605 ink px, against ~520 if they were drawn on top |
+| ink | ~500 colours per image — no ink colour to key on |
+
+**Not invertible.** The same character in the same answer renders as visibly
+different shapes (random face × size × rotation is a continuous family), so the
+bitmap-cover route that reads Kaveri, Udyam and NGT is closed — for ITAT's
+reason and then some. It is a CRNN + CTC.
+
+**The bars are a constant, so they are blinded, not modelled.** They are the
+only destructive noise and they never move, so `solver/bharatkosh.py:ink_map`
+zeroes those six rows for real and synthetic input alike. The model sees one
+consistent blind band instead of hundreds of bar colours and learns nothing
+about bars at all. The ink map is `1 - min(r,g,b)/255` (every glyph fill is far
+from white in *some* channel; pastel specks are not), with isolated pixels
+removed. What the band costs is real — a tilted `A` with one foot in the lower
+bar leaves a `4` — and no single image gets that back.
+
+### The endpoint re-renders one answer on request
+
+| request | result |
+|---|---|
+| `?New=1`, or no parameter | draws a **new** text into the session |
+| `?New=0` on an existing session | **re-renders the same text** — fresh faces, sizes, rotations, colours, specks |
+| `?New=0` with no session | 500 |
+
+So the unit of reading is not an image but a **group** of K renders of one
+answer. `vote` scores each candidate word — the union of every render's beam —
+by its **summed CTC log-likelihood across renders**, and confidence is the
+winner's posterior over the candidates. Summing likelihoods rather than
+majority-voting strings means three renders each unsure about a *different*
+glyph still out-vote their own mistakes. That the re-render leaves the
+*submittable* answer unchanged is inferred from the text staying constant, not
+confirmed by posting a form.
+
+### The charset is 54: `0 1 I O i l o w` never occur
+
+Measured two independent ways. The synthetic-only model's voted reads of 297
+groups (1782 characters, ~29 expected per class) contain the eight **once**
+between them — and a model can mislabel a class but cannot hide it: a real `O`
+must come out as *something*, yet `0` + `O` + `o` sum to 1 against ~86 expected,
+and `1` + `I` + `i` + `l` to 0 against ~115. `W` sits at 33 alone, so `w` is not
+being folded into it. Separately, the hand-read characters contain none of
+them: 0 of 198 (P = 1.3 × 10⁻¹² under a uniform 62). That is the classic
+confusable-glyph blocklist, plus `w` (≈ `W` once glyph size is random). The
+census also caught a labelling error: the one `O` among the hand labels, in
+`b0005`, could not be resolved on re-reading, and that group moved to
+`bharatkosh_ambiguous.json`.
+
+Carrying the impossible classes was not harmless — they were the top
+single-render confusions (`j→i` 14, `p→o` 13, `M→I` 3), the EPFO lesson again.
+Removing them needed no retraining: the checkpoint was converted by slicing the
+output layer, which leaves every kept class's logit unchanged — the same as
+forbidding the eight at decode time.
+
+Case is kept: every other case pair (`c/C`, `s/S`, `v/V`, `x/X`, `z/Z`, …)
+occurs in both cases at about the uniform rate.
+
+### No hand label is spent on training
+
+Hand-reading this captcha is unreliable even with five renders side by side: of
+46 answers read, 13 (28%) went to `bharatkosh_ambiguous.json` rather than be
+guessed — 12 at first reading, plus `b0005` after the census flagged it. Every one of the 33 that could be
+read is **held out** — pinned by *group* id (never by image, or renders of a
+test answer would leak) in `bharatkosh_split.json`: 9 `dev` (checkpoint
+selection) and 24 `test` (scored once per model, never used to choose). A test
+enforces that `dev ∪ test` is exactly the label set.
+
+The real-image signal comes from the endpoint instead.
+`finetune_bharatkosh.py` pseudo-labels an unlabelled group when its vote is
+≥ 0.99 confident **and** at least 4 of its 5 single reads already equal the
+vote. It is 4, not 5, on purpose: a unanimous group teaches nothing, and the
+group with one dissenting render is exactly a real image the model gets wrong,
+labelled by its four siblings. 246 of 267 unlabelled groups qualified (1227
+renders), shown under per-epoch affine jitter (the ITAT lesson) and mixed with
+fresh synthetic data.
+
+```bash
+python3 download_bharatkosh.py 300 5 bharatkosh_raw  # 300 answers x 5 renders; no gate
+python3 train_bharatkosh.py 40        # synthetic only -> solver/bharatkosh_model.pt
+python3 finetune_bharatkosh.py 12     # agreement pseudo-labels, no hand labels
+python3 eval_bharatkosh.py            # both legs on the test split (--split dev, --census)
+```
+
+### Results
+
+Two legs, as for NGT: one needs no labels, the other needs held-out labels.
+
+**Leg 1 — label-free, on 60 fresh answers** (harvested after the fine-tune ran,
+never labelled). How often does a single render read the same as its group's
+vote?
+
+| model | render = vote | unanimous answers |
+|---|---|---|
+| synthetic only | 275/300 (91.7%) | 42/60 (70.0%) |
+| **+ agreement fine-tune** | **297/300 (99.0%)** | **57/60 (95.0%)** |
+
+"Fresh" is load-bearing. On the 246 groups the fine-tune trained on, agreement
+rising is memorisation by construction, and the 21 it rejected were chosen *by*
+disagreement — folding those 21 into the "never trained on" set dragged the
+synthetic model to 82.5%, against 91.7% on fresh answers alone.
+`finetune_bharatkosh.py` records both sets in `bharatkosh_pseudo.json`, and the
+eval prints the fresh line separately.
+
+**Leg 2 — 24 held-out hand-labelled answers**, voted over K renders (K < 5
+averaged over every K-subset of the five):
+
+| K renders | synthetic only | folded | **+ fine-tune** | **folded** |
+|---|---|---|---|---|
+| 1 | 96/120 (80.0%) | 84.2% | 99/120 (82.5%) | 86.7% |
+| 2 | 83.3% | 87.5% | 83.3% | 87.5% |
+| 3 | 83.3% | 87.5% | 83.3% | 87.5% |
+| 4 | 83.3% | 87.5% | 83.3% | 87.5% |
+| 5 | 20/24 (83.3%) | 21/24 (87.5%) | **20/24 (83.3%)** | **21/24 (87.5%)** |
+
+At K = 5 that is 140/144 characters (97.2%). The 9 `dev` answers read 7/9 voted
+throughout.
+
+### What the vote bought, and what it could not
+
+The design's testable claim was that voted accuracy rises steeply with K,
+because renders are independent draws. **On the labelled answers it does not:**
++3.3 points from K = 1 to K = 2, then flat. The design named that outcome in
+advance as the one that rules out "more votes" as the lever.
+
+The four remaining errors show why: `7→Z`, `r→t`, `r→f` and `u→U` (case).
+**Every render of its answer shares each one**, at vote confidence 1.00. Voting
+removes *render* noise — the leg-1 disagreements, a glyph cut by a bar in one
+render and whole in the next — and has nothing to say about a confusion the
+model makes on every drawing. Nor can the fine-tune: its labels are the model's
+own votes, so it can teach one render to agree with the vote (91.7% → 99.0%
+above) but never correct a unanimous mistake. That is exactly the pattern in the
+table: K = 1 caught up with K = 5, and K = 5 did not move.
+
+Two consequences:
+
+- **Confidence cannot gate these errors.** All four wrong reads score 1.00. The
+  retry that helps is a *new answer* after the portal rejects a submission, not
+  another look at the same one. If answers are independent at the measured
+  83.3%, that is ~97% within two submissions and ~99.5% within three — derived,
+  not measured. `solve_bharatkosh_with_rerender` still earns its keep on the
+  render-noise errors, and costs one fetch whenever the first render is
+  confident, which after the fine-tune is most of the time.
+- **Some of the four may be my misreads.** They are the pairs a human also
+  confuses on this image (`r`/`t`/`f`, `7`/`Z`, `u`/`U`), and unlike NGT, whose
+  labels were checked against libgd's font source, this font mix has no
+  independent ground truth. The labels stand as first read, and the score is
+  reported as measured. Either way the next lever is more (and adjudicated)
+  labels or a closer generator, not more votes.
+
+### Endpoint behaviour (measured)
+
+- **No request gate.** No UA, an empty UA, `curl/8.x` and `python-requests/2.31`
+  all get 200; no cookie or referer is needed for a first fetch. Another posture
+  again — so, again, no header recipe was carried over.
+- **No rate limit hit.** 1500 requests at 2 s spacing drew zero blocks. The trip
+  point was not searched for.
+- **Session-bound (inferred).** `ASP.NET_SessionId` is set on the first fetch and
+  persists; `New=0` re-renders what that session holds. So one jar per answer —
+  `download_bharatkosh.py` takes a fresh jar per group — and a live caller should
+  fetch, re-render and submit through one jar. How the answer is submitted is
+  deliberately not documented.
+- A `curl` timeout can return a **truncated PNG** that still starts with the
+  magic; three such renders were caught by a failing eval. The harvester now
+  requires the `IEND` chunk.
+
+### Caveat: case, and the submit contract
+
+The read is case-sensitive, and whether the portal validates case is unknown —
+finding out means posting to a live form. Hence the two columns above. There is
+no `AMBIGUOUS` entry to retry around, unlike MCA: the case-pair letters are in
+most reads, so skipping them would skip most captchas, and case caused only one
+of the test errors.
+
+---
+
 ## Self-improvement loop
 
 Captcha generators change without warning, and the failure is silent: the model
@@ -937,10 +1140,25 @@ def fetch():                                 # re-request on the SAME session
 code, conf, kind, tries = solve_with_retry(fetch, min_conf=0.90, kind="securimage")
 ```
 
-Routing is by native image size: 150×42 → `itat`, 150×50 → `epfo`, 182×50 →
+Routing is by native image size: 150×40 → `bharatkosh`, 150×42 → `itat`, 150×50 → `epfo`, 182×50 →
 `gst`, 200×60 → `kaveri`, 200×80 → `mca`, 215×80 → `securimage`, 225×80 →
 `udyam`. The one exception is 120×40, shared by `gstat` and `ngt` and resolved
 by content — gstat's ink is `#333` and never pure black, NGT's is.
+
+Bharatkosh reads best from several renders of one answer, so it has its own
+helper. `fetch(new)` must request `?New=1` when `new` is true and `?New=0`
+otherwise, on the session the form will be submitted through:
+
+```python
+from solver.api import solve_bharatkosh_with_rerender
+
+def fetch(new):
+    return session.get(URL, params={"New": 1 if new else 0}).content
+code, conf, renders, texts = solve_bharatkosh_with_rerender(fetch, min_conf=0.90)
+```
+
+It spends re-renders before new texts (a re-render never changes the answer),
+and the read it returns always belongs to the text the session holds.
 
 Securimage is **session-bound**: each captcha request rotates the server-side
 code, so only the most recently fetched captcha is valid to submit.
@@ -953,17 +1171,18 @@ before fetching again. The GST captcha behaves the same way.
 
 - `solver/` — renderers, models, decode, pipeline, `api.py`
 - `train_securimage.py`, `train_gst.py`, `train_mca.py`, `train_epfo.py`,
-  `train_itat.py`, `train.py`, `gen_corpus.py`, `finetune_gst.py`,
-  `finetune_mca.py`, `finetune_itat.py`
+  `train_itat.py`, `train_bharatkosh.py`, `train.py`, `gen_corpus.py`,
+  `finetune_gst.py`, `finetune_mca.py`, `finetune_itat.py`,
+  `finetune_bharatkosh.py`
 - `mkglyphs_udyam.py`, `mkglyphs_ngt.py` — rebuild the Udyam / NGT glyph
   libraries from a corpus (Kaveri's equivalent lives in
   `solver.kaveri.extract_sprites`)
 - `selfimprove.py` — drift detection and gated self-training
 - `eval_ngt.py`, `eval_securimage.py`, `eval_gst.py`, `eval_mca.py`, `eval_epfo.py`,
-  `eval_kaveri.py`, `eval_udyam.py`, `eval_itat.py`
+  `eval_kaveri.py`, `eval_udyam.py`, `eval_itat.py`, `eval_bharatkosh.py`
 - `download_ngt.py`, `download_gst.py`, `download_mca.py`, `download_epfo.py`,
   `download_securimage.py`, `download_kaveri.py`, `download_udyam.py`,
-  `download_itat.py`
+  `download_itat.py`, `download_bharatkosh.py`
 - `tests/` — `python3 -m unittest discover -s tests -v`
 - `tests/gdfontgiant_alnum.json` — the 36 alphanumeric bitmaps of GD's built-in
   font 5, transcribed from libgd `src/gdfontg.c` (original BDF copyright Libor
@@ -973,3 +1192,6 @@ before fetching again. The GST captcha behaves the same way.
 - `fonts/AHGBold.ttf` — Alte Haas Grotesk Bold (via the Securimage project)
 - `fonts/DejaVu*.ttf` — DejaVu fonts (Bitstream Vera / Arev licence,
   `fonts/DejaVu-LICENSE`), used by the GST, MCA and ITAT renderers
+- the Bharatkosh renderer loads Windows core faces (Arial, Verdana, Tahoma, …)
+  from `/System/Library/Fonts/Supplemental` by path at *training* time only; they
+  are not redistributed here, and inference never touches a font

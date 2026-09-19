@@ -38,6 +38,7 @@ MODEL = ARGS[0] if ARGS else "solver/bharatkosh_model.pt"
 RAW = "bharatkosh_raw"
 LABELS = "bharatkosh_labels.json"
 SPLIT = "bharatkosh_split.json"
+PSEUDO = "bharatkosh_pseudo.json"
 
 
 def groups():
@@ -49,14 +50,18 @@ def groups():
 
 
 def census(labels):
+    """Hand-label census over the FULL 62-class alnum set, so the exclusions
+    baked into B.CHARSET stay visible and re-checkable as labels are added."""
+    full = B.CHARSET + B.EXCLUDED
     c = Counter("".join(labels.values()))
     n = sum(c.values())
-    absent = [ch for ch in B.CHARSET if c[ch] == 0]
-    print(f"\ncensus: {n} labelled chars over {len(labels)} groups")
-    print("  absent:", "".join(absent) or "-")
-    # P(a given class never appears | uniform over the full charset)
-    print(f"  P(one given class absent by chance) = {(1 - 1/B.N_CLASSES) ** n:.3g}"
-          f"  -> exclusions need this well below 0.01")
+    absent = "".join(ch for ch in sorted(full) if c[ch] == 0)
+    print(f"\ncensus: {n} hand-labelled chars over {len(labels)} groups")
+    print(f"  absent: {absent or '-'}   (excluded by design: {B.EXCLUDED})")
+    print(f"  P(all of the {len(B.EXCLUDED)} excluded absent | uniform 62) = "
+          f"{((62 - len(B.EXCLUDED)) / 62) ** n:.2g}")
+    print(f"  P(one given class absent by chance) = {(1 - 1/62) ** n:.3g}"
+          f"  -> a single absent class alone proves nothing at this n")
 
 
 def main():
@@ -73,14 +78,24 @@ def main():
     single = {g: [B.vote([lp])[0] for lp in lp5] for g, lp5 in lps.items()}
     voted = {g: B.vote(list(lp5)) for g, lp5 in lps.items()}
 
-    n_r = sum(len(v) for v in single.values())
-    agree = sum(s == voted[g][0] for g, ss in single.items() for s in ss)
-    agree_f = sum(s.lower() == voted[g][0].lower() for g, ss in single.items() for s in ss)
-    unan = sum(len(set(ss)) == 1 for ss in single.values())
-    unan_f = sum(len({s.lower() for s in ss}) == 1 for ss in single.values())
-    print(f"LEG 1 (label-free)  {len(G)} groups, {n_r} renders")
-    print(f"  render == group vote   {agree}/{n_r} ({agree/n_r:.1%})   folded {agree_f/n_r:.1%}")
-    print(f"  unanimous groups       {unan}/{len(G)} ({unan/len(G):.1%})   folded {unan_f/len(G):.1%}")
+    # Groups the fine-tune trained on (its own votes as labels) agree with their
+    # vote by construction, and the ones it rejected were chosen BY disagreement,
+    # so leg 1 is also reported over "fresh" groups: harvested after the
+    # fine-tune ran and never labelled. That line is the honest one.
+    seen = set(json.load(open(PSEUDO))["seen"]) if os.path.exists(PSEUDO) else set()
+    labelled = set(json.load(open(LABELS)))
+    print("LEG 1 (label-free)")
+    for name, sel in (("all groups", set(single)),
+                      ("fresh", set(single) - seen - labelled)):
+        n_g = len(sel)
+        if not n_g:
+            continue
+        n_r = sum(len(single[g]) for g in sel)
+        agree = sum(s == voted[g][0] for g in sel for s in single[g])
+        agree_f = sum(s.lower() == voted[g][0].lower() for g in sel for s in single[g])
+        unan = sum(len(set(single[g])) == 1 for g in sel)
+        print(f"  {name:17s} {n_g:3d} groups: render == vote {agree}/{n_r} ({agree/n_r:.1%},"
+              f" folded {agree_f/n_r:.1%})   unanimous {unan}/{n_g} ({unan/n_g:.1%})")
     print(f"  median vote confidence {np.median([c for _, c in voted.values()]):.3f}")
 
     labels = json.load(open(LABELS))

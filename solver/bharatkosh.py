@@ -47,9 +47,9 @@ from PIL import Image, ImageDraw, ImageFont
 #   come out as SOMETHING, yet `0`, `O` and `o` sum to 1 against ~86 expected,
 #   and `1 I i l` to 0 against ~115. `W` sits at 33 alone, i.e. `w` is not
 #   being folded into it;
-# * the 204 hand-read characters contain none of them either (after `b0005`,
+# * the 198 hand-read characters contain none of them either (after `b0005`,
 #   whose one `O` the census flagged, was re-read and moved to ambiguous);
-#   P(no draw from these 8 in 204 uniform draws over 62) = 5.8e-13.
+#   P(no draw from these 8 in 198 uniform draws over 62) = 1.3e-12.
 #
 # It is the classic confusable-glyph blocklist plus `w` (~ `W` once size is
 # random per glyph). Carrying the impossible classes was not harmless: they

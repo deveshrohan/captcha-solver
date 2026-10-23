@@ -4,8 +4,8 @@ Local, synthetic-trained captcha readers. `solve.py` auto-routes by image size
 (and, where two share one, by content) and runs on CPU with the included weights.
 
 > Ships code, the synthetic data generators, and pretrained weights — no captcha
-> images. Every *model* here is trained on synthetic data only. The three
-> model-free readers (kaveri, udyam, ngt) are the exception worth naming: they
+> images. Every *model* here is trained on synthetic data only. The five
+> model-free readers (kaveri, udyam, ngt, hrmut, mhigr) are the exception worth naming: they
 > ship a library of individual glyph bitmaps extracted from real captchas, since
 > a template cover is only as good as the templates. Use only against services
 > you are authorized to automate. Endpoint URLs are placeholders; set
@@ -23,6 +23,8 @@ Local, synthetic-trained captcha readers. `solve.py` auto-routes by image size
 | itat | 150×42 | 6 mixed-case alnum, blue lines over text | darkness projection → CRNN+CTC, case-insensitive + augmented real fine-tune | 36.7% exact / 85.0% char (11/30), ~84% within 4 fetches |
 | ngt | 120×40 | 6 lowercase-alnum, pastel speckle under text | exact black mask → fixed-grid glyph lookup, **no model** | **40/40 exact** held-out, 239/239 exact cover |
 | bharatkosh | 150×40 | 6 mixed-case alnum, per-glyph face/size/rotation, two fixed bars | blinded bar rows → CRNN+CTC, **vote across `New=0` re-renders**, label-free fine-tune | **83.3% exact (20/24), 97.2% char** voted over 5 renders; 87.5% case-folded; 82.5% from one render |
+| hrmut | 60×20 | 6 white mixed-case alnum on green | fixed-font glyph cover, **no model** | **86.7% exact (26/30)**; confidence-gated ≤3-image replay **10/10** |
+| mhigr | 100×30 | 6 green uppercase-alnum, green speckle | fixed-font glyph cover, **no model** | **100% exact (30/30)**; confidence-gated ≤3-image replay **10/10** |
 
 ```bash
 pip install torch numpy pillow       # inference deps (scipy is training-only)
@@ -1195,3 +1197,46 @@ before fetching again. The GST captcha behaves the same way.
 - the Bharatkosh renderer loads Windows core faces (Arial, Verdana, Tahoma, …)
   from `/System/Library/Fonts/Supplemental` by path at *training* time only; they
   are not redistributed here, and inference never touches a font
+
+
+## India public green GIF readers (`hrmut`, `mhigr`)
+
+These readers cover six glyphs using individual pixel templates. HR's red
+channel isolates white text; a 128 threshold absorbs GIF palette/subpixel
+variation. MH's dark-green foreground is separated from the brighter speckle.
+The cover checks the whole ink map, with a distinct-word margin; it never looks
+up a full captcha answer. The libraries contain **train glyphs only**.
+
+Two independent, shuffled visual passes supplied all labels. Disagreements were
+re-viewed at pixel scale; four HR adjudications are recorded separately. No
+solver outputs supplied labels. HR fetched 150 images, dropping 28 unreadable
+I/l cases: 82 train / 10 validation / **30 final test**. IGR fetched 119 images
+(120 attempts, one HTTP 503): 79 / 10 / **30 final test**, no unreadable drops.
+Collection was one worker, image-URL GETs only, at least three seconds apart.
+A 503 stopped IGR collection; one attempt resumed after a 30-minute pause.
+
+The README table's replay uses ten disjoint three-image groups from the pinned
+final test split. The helper stops at the first confident read and is compared
+to **that image's** label; it cannot choose a correct answer with an oracle.
+Average images used: HR **1.2**, IGR **1.4**. Accepted single-image precision was
+21/22 and 17/17 respectively. These are offline policy replays on fresh collected
+images, **not live form acceptance rates**. Single-shot accuracy excludes the
+explicit unreadable drops. HR's indistinguishable I/l bars force a refresh.
+
+Use `solve_with_retry(..., kind="hrmut", max_tries=3, min_conf=0.97)` or
+`kind="mhigr", min_conf=0.90`. The helper enforces HR's 0.97 floor, including
+auto-routing; a final exhausted read may still be below threshold, so a caller
+must check confidence before submitting. Fetch through the form's current
+session and submit the last fetched answer before any refresh.
+
+`finalize_india_labels.py` pins the split and preserves an existing final test
+when more training images are labelled. `mkglyphs_india.py KIND --font FONT`
+uses matching Arial Bold (HR) / Arial (MH) solely for initial train glyph
+boundaries; forced-label cover refines them. No licensed font or raw image is
+shipped. `eval_india.py KIND` and `selfimprove.py check --kinds hrmut mhigr`
+report held-out accuracy. Neither reader has weights to pseudo-train.
+
+Image-only collection is available through `download_india.py KIND N DIR` with
+`HRMUT_CAPTCHA_URL` / `MHIGR_CAPTCHA_URL` set to an authorized public image URL.
+It refuses more than 150 cumulative attempts per kind and stops on any error.
+Do not run a second collector or use it against login/OTP pages.

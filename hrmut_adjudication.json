@@ -1,0 +1,18 @@
+{
+ "hrmut_raw/hrmut_029.gif": {
+  "final": "ATtb3v",
+  "reason": "two passes disagreed h/t; 10x pixel re-view confirms lowercase t"
+ },
+ "hrmut_raw/hrmut_115.gif": {
+  "final": "fMXBcT",
+  "reason": "both passes uncertain at f/M boundary; 10x re-view resolves six letters"
+ },
+ "hrmut_raw/hrmut_045.gif": {
+  "final": "rfBGLv",
+  "reason": "training-only exact-cover disagreement; 10x independent re-view shows v with no descender"
+ },
+ "hrmut_raw/hrmut_113.gif": {
+  "final": "ZLgsnh",
+  "reason": "training-only exact-cover disagreement; 10x re-view shows g rounded descender"
+ }
+}

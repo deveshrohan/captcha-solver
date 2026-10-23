@@ -1,0 +1,122 @@
+{
+  "kind": "mhigr",
+  "split": "validation",
+  "artifact_sha256": "921098aedbb3967d14c0caa45fc5984b856c875ca49f85b1db36b7a152ee0003",
+  "n": 10,
+  "exact": 10,
+  "single_shot_exact": 1.0,
+  "accepted": 7,
+  "accepted_correct": 7,
+  "retry_groups": 3,
+  "within_three_exact": 3,
+  "within_three_rate": 1.0,
+  "mean_fresh_fetches": 1.3333333333333333,
+  "threshold": 0.9,
+  "rows": [
+    {
+      "path": "mhigr_raw/mhigr_057.gif",
+      "label": "B1C26C",
+      "prediction": "B1C26C",
+      "confidence": 0.9770572549508264,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_032.gif",
+      "label": "21D46D",
+      "prediction": "21D46D",
+      "confidence": 0.9708547585954269,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_116.gif",
+      "label": "6C1CC1",
+      "prediction": "6C1CC1",
+      "confidence": 0.2707470580935478,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_085.gif",
+      "label": "DB8A94",
+      "prediction": "DB8A94",
+      "confidence": 0.9917064729767541,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_062.gif",
+      "label": "B771C9",
+      "prediction": "B771C9",
+      "confidence": 0.496838316321373,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_086.gif",
+      "label": "55B7AD",
+      "prediction": "55B7AD",
+      "confidence": 0.9951228629021595,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_060.gif",
+      "label": "C2972D",
+      "prediction": "C2972D",
+      "confidence": 0.5063291266560555,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_054.gif",
+      "label": "65B1A8",
+      "prediction": "65B1A8",
+      "confidence": 0.9883552462949107,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_009.gif",
+      "label": "23D181",
+      "prediction": "23D181",
+      "confidence": 0.9693948744485775,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_079.gif",
+      "label": "DD29B4",
+      "prediction": "DD29B4",
+      "confidence": 0.9900925823797783,
+      "correct": true
+    }
+  ],
+  "groups": [
+    {
+      "paths": [
+        "mhigr_raw/mhigr_057.gif",
+        "mhigr_raw/mhigr_032.gif",
+        "mhigr_raw/mhigr_116.gif"
+      ],
+      "used": 1,
+      "accepted": true,
+      "correct": true,
+      "confidence": 0.9770572549508264
+    },
+    {
+      "paths": [
+        "mhigr_raw/mhigr_085.gif",
+        "mhigr_raw/mhigr_062.gif",
+        "mhigr_raw/mhigr_086.gif"
+      ],
+      "used": 1,
+      "accepted": true,
+      "correct": true,
+      "confidence": 0.9917064729767541
+    },
+    {
+      "paths": [
+        "mhigr_raw/mhigr_060.gif",
+        "mhigr_raw/mhigr_054.gif",
+        "mhigr_raw/mhigr_009.gif"
+      ],
+      "used": 2,
+      "accepted": true,
+      "correct": true,
+      "confidence": 0.9883552462949107
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 """CLI: solve captcha image(s), auto-routing by captcha type.
 
+   60x20  -> Haryana mutation        (white mixed-case -> fixed-font glyph cover)
+  100x30  -> Maharashtra IGR         (green uppercase-alnum -> fixed-font glyph cover)
   120x40  -> gstat numeric captcha   (threshold + segment + per-digit CNN)
            OR NGT portal             (exact black mask -> fixed-grid glyph lookup, no model)
            These two share a size — the only collision here — so they are told

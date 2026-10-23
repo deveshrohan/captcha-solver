@@ -46,3 +46,10 @@ gst_adjudicate.html
 mca_adjudicate.html
 epfo_raw/
 selfimprove_state.json
+
+# India reader collection artifacts (raw GIFs, never distributed)
+hrmut_raw/
+mhigr_raw/
+india_capture_ledger.jsonl
+
+.india-captcha.lock

@@ -1,0 +1,339 @@
+{
+  "kind": "mhigr",
+  "split": "test",
+  "artifact_sha256": "921098aedbb3967d14c0caa45fc5984b856c875ca49f85b1db36b7a152ee0003",
+  "n": 30,
+  "exact": 30,
+  "single_shot_exact": 1.0,
+  "accepted": 17,
+  "accepted_correct": 17,
+  "retry_groups": 10,
+  "within_three_exact": 10,
+  "within_three_rate": 1.0,
+  "mean_fresh_fetches": 1.4,
+  "threshold": 0.9,
+  "rows": [
+    {
+      "path": "mhigr_raw/mhigr_022.gif",
+      "label": "A37899",
+      "prediction": "A37899",
+      "confidence": 0.993875565007329,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_024.gif",
+      "label": "56319C",
+      "prediction": "56319C",
+      "confidence": 0.9884469693837067,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_028.gif",
+      "label": "84CD53",
+      "prediction": "84CD53",
+      "confidence": 0.7317072153091431,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_075.gif",
+      "label": "71B21C",
+      "prediction": "71B21C",
+      "confidence": 0.9770554519879321,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_081.gif",
+      "label": "81A399",
+      "prediction": "81A399",
+      "confidence": 0.9890395526308566,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_044.gif",
+      "label": "1A9B3C",
+      "prediction": "1A9B3C",
+      "confidence": 0.9792458910960704,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_041.gif",
+      "label": "24B463",
+      "prediction": "24B463",
+      "confidence": 0.989134955763196,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_023.gif",
+      "label": "5C1272",
+      "prediction": "5C1272",
+      "confidence": 0.624999888241291,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_082.gif",
+      "label": "377B35",
+      "prediction": "377B35",
+      "confidence": 0.9953182855000099,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_007.gif",
+      "label": "3496A2",
+      "prediction": "3496A2",
+      "confidence": 0.993648997352769,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_084.gif",
+      "label": "146B86",
+      "prediction": "146B86",
+      "confidence": 0.9917639770234624,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_001.gif",
+      "label": "284517",
+      "prediction": "284517",
+      "confidence": 0.9776583034545183,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_091.gif",
+      "label": "26ACCD",
+      "prediction": "26ACCD",
+      "confidence": 0.6211179494857788,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_080.gif",
+      "label": "31DBC2",
+      "prediction": "31DBC2",
+      "confidence": 0.7407407090067863,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_105.gif",
+      "label": "364841",
+      "prediction": "364841",
+      "confidence": 0.9817605298012495,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_111.gif",
+      "label": "D7D6A9",
+      "prediction": "D7D6A9",
+      "confidence": 0.9905743109993637,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_025.gif",
+      "label": "DC1A38",
+      "prediction": "DC1A38",
+      "confidence": 0.6289307773113251,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_030.gif",
+      "label": "41CB7B",
+      "prediction": "41CB7B",
+      "confidence": 0.5121951550245285,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_014.gif",
+      "label": "2556B9",
+      "prediction": "2556B9",
+      "confidence": 0.9959699655883014,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_090.gif",
+      "label": "4135CA",
+      "prediction": "4135CA",
+      "confidence": 0.4999999329447746,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_058.gif",
+      "label": "7B62CC",
+      "prediction": "7B62CC",
+      "confidence": 0.4938271641731262,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_056.gif",
+      "label": "7A6AB6",
+      "prediction": "7A6AB6",
+      "confidence": 0.996981827619796,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_004.gif",
+      "label": "C63DA3",
+      "prediction": "C63DA3",
+      "confidence": 0.4999999515712261,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_011.gif",
+      "label": "1562DC",
+      "prediction": "1562DC",
+      "confidence": 0.24844719097018242,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_088.gif",
+      "label": "299C13",
+      "prediction": "299C13",
+      "confidence": 0.2643539756536484,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_104.gif",
+      "label": "DC7D1D",
+      "prediction": "DC7D1D",
+      "confidence": 0.25393087416887283,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_089.gif",
+      "label": "A2779C",
+      "prediction": "A2779C",
+      "confidence": 0.9925210896568993,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_115.gif",
+      "label": "9B73B3",
+      "prediction": "9B73B3",
+      "confidence": 0.9880407250796756,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_071.gif",
+      "label": "D74BD9",
+      "prediction": "D74BD9",
+      "confidence": 0.9956927433765183,
+      "correct": true
+    },
+    {
+      "path": "mhigr_raw/mhigr_017.gif",
+      "label": "5D622C",
+      "prediction": "5D622C",
+      "confidence": 0.6210708990693092,
+      "correct": true
+    }
+  ],
+  "groups": [
+    {
+      "paths": [
+        "mhigr_raw/mhigr_022.gif",
+        "mhigr_raw/mhigr_024.gif",
+        "mhigr_raw/mhigr_028.gif"
+      ],
+      "used": 1,
+      "accepted": true,
+      "correct": true,
+      "confidence": 0.993875565007329
+    },
+    {
+      "paths": [
+        "mhigr_raw/mhigr_075.gif",
+        "mhigr_raw/mhigr_081.gif",
+        "mhigr_raw/mhigr_044.gif"
+      ],
+      "used": 1,
+      "accepted": true,
+      "correct": true,
+      "confidence": 0.9770554519879321
+    },
+    {
+      "paths": [
+        "mhigr_raw/mhigr_041.gif",
+        "mhigr_raw/mhigr_023.gif",
+        "mhigr_raw/mhigr_082.gif"
+      ],
+      "used": 1,
+      "accepted": true,
+      "correct": true,
+      "confidence": 0.989134955763196
+    },
+    {
+      "paths": [
+        "mhigr_raw/mhigr_007.gif",
+        "mhigr_raw/mhigr_084.gif",
+        "mhigr_raw/mhigr_001.gif"
+      ],
+      "used": 1,
+      "accepted": true,
+      "correct": true,
+      "confidence": 0.993648997352769
+    },
+    {
+      "paths": [
+        "mhigr_raw/mhigr_091.gif",
+        "mhigr_raw/mhigr_080.gif",
+        "mhigr_raw/mhigr_105.gif"
+      ],
+      "used": 3,
+      "accepted": true,
+      "correct": true,
+      "confidence": 0.9817605298012495
+    },
+    {
+      "paths": [
+        "mhigr_raw/mhigr_111.gif",
+        "mhigr_raw/mhigr_025.gif",
+        "mhigr_raw/mhigr_030.gif"
+      ],
+      "used": 1,
+      "accepted": true,
+      "correct": true,
+      "confidence": 0.9905743109993637
+    },
+    {
+      "paths": [
+        "mhigr_raw/mhigr_014.gif",
+        "mhigr_raw/mhigr_090.gif",
+        "mhigr_raw/mhigr_058.gif"
+      ],
+      "used": 1,
+      "accepted": true,
+      "correct": true,
+      "confidence": 0.9959699655883014
+    },
+    {
+      "paths": [
+        "mhigr_raw/mhigr_056.gif",
+        "mhigr_raw/mhigr_004.gif",
+        "mhigr_raw/mhigr_011.gif"
+      ],
+      "used": 1,
+      "accepted": true,
+      "correct": true,
+      "confidence": 0.996981827619796
+    },
+    {
+      "paths": [
+        "mhigr_raw/mhigr_088.gif",
+        "mhigr_raw/mhigr_104.gif",
+        "mhigr_raw/mhigr_089.gif"
+      ],
+      "used": 3,
+      "accepted": true,
+      "correct": true,
+      "confidence": 0.9925210896568993
+    },
+    {
+      "paths": [
+        "mhigr_raw/mhigr_115.gif",
+        "mhigr_raw/mhigr_071.gif",
+        "mhigr_raw/mhigr_017.gif"
+      ],
+      "used": 1,
+      "accepted": true,
+      "correct": true,
+      "confidence": 0.9880407250796756
+    }
+  ]
+}

@@ -35,6 +35,8 @@ from solver import mca as M
 from solver import ngt as N
 from solver import securimage as S
 from solver import udyam as Y
+from solver import hrmut as H
+from solver import mhigr as I
 from solver.model import DigitCNN
 from solver.pipeline import solve_image as _solve_gstat_path
 
@@ -76,6 +78,8 @@ def _route_120x40(pil):
 # (width, height) -> kind, or a callable(pil) -> kind where one size serves more
 # than one captcha.
 _SIZES = {
+    (60, 20): "hrmut",
+    (100, 30): "mhigr",
     (215, 80): "securimage",
     (182, 50): "gst",
     (200, 80): "mca",
@@ -207,7 +211,7 @@ def _load_bharatkosh():
 
 
 def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False,
-           kaveri=False, udyam=False, itat=False, ngt=False, bharatkosh=False):
+           kaveri=False, udyam=False, itat=False, ngt=False, bharatkosh=False, hrmut=False, mhigr=False):
     """Pre-load models at scraper startup so the first live solve isn't slow.
     Also runs one dummy forward to trigger lazy CUDA/oneDNN init. Call once.
 
@@ -240,6 +244,10 @@ def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False,
         m = _load_bharatkosh()
         with torch.no_grad():
             m(torch.zeros(1, 1, BK.IN_H, BK.IN_W))
+    if hrmut or mhigr:
+        from solver.fixedgreen import library
+        if hrmut: library("hrmut")
+        if mhigr: library("mhigr")
     if kaveri:
         K.glyphs()
     if udyam:
@@ -446,7 +454,11 @@ def solve_bytes(image, kind=None):
             kind = kind(pil)
         if kind is None:                      # unknown size: fall back to width
             kind = "securimage" if pil.width > 180 else "gstat"
-    if kind == "securimage":
+    if kind == "hrmut":
+        text, conf = H.solve_image(pil)
+    elif kind == "mhigr":
+        text, conf = I.solve_image(pil)
+    elif kind == "securimage":
         text, conf = solve_securimage(pil)
     elif kind == "gst":
         text, conf = solve_gst(pil)
@@ -492,11 +504,15 @@ def solve_with_retry(fetch, min_conf=0.90, max_tries=4, kind=None,
       * this helper returns the LAST fetched read when it never reaches min_conf
         (not the historical best), because that is the code the session holds.
       * submit the returned code with that same session BEFORE fetching again.
-    Returns as soon as a read is confident (that read == current session code)."""
+    Returns as soon as a read is confident (that read == current session code).
+    HR mutation uses a validation-selected confidence floor of 0.97, even when
+    min_conf is lower; after exhaustion the returned confidence still needs
+    checking by the caller."""
     text, conf, k = "", 0.0, kind
     for i in range(1, max_tries + 1):
         text, conf, k = solve_bytes(fetch(), kind=kind)   # last read == session code
-        if conf < min_conf:
+        threshold = max(min_conf, 0.97) if k == "hrmut" else min_conf
+        if conf < threshold:
             continue
         if avoid_ambiguous and set(text) & set(AMBIGUOUS.get(k, "")):
             continue          # unresolvable glyph in the read -> take a fresh captcha

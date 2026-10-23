@@ -44,6 +44,14 @@ STATE = "selfimprove_state.json"
 
 # kind -> how to fetch, where the corpus lives, expected shape, label file
 KINDS = {
+    "hrmut": dict(size=(60, 20), length=6,
+                  charset="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+                  corpus="hrmut_raw", glob="*.gif", labels="hrmut_labels.json",
+                  fetch=["python3", "download_india.py", "hrmut"], model=None),
+    "mhigr": dict(size=(100, 30), length=6,
+                  charset="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                  corpus="mhigr_raw", glob="*.gif", labels="mhigr_labels.json",
+                  fetch=["python3", "download_india.py", "mhigr"], model=None),
     "gst": dict(size=(182, 50), length=6, charset="0123456789",
                 corpus="gst_raw", glob="g*.png", labels="gst_labels.json",
                 fetch=["python3", "download_gst.py"], model="solver/gst_model.pt"),

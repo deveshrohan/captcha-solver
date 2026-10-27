@@ -1,0 +1,4 @@
+Fonts bundled with mewebstudio/captcha (assets/fonts, unchanged since v2.0.0, 2015).
+Used only at TRAINING time to render synthetic Calcutta HC captchas.
+ABeeZee, Asap, Khand: SIL OFL 1.1 (OFL.txt). Open Sans, Roboto: Apache 2.0 (LICENSE-2.0.txt).
+Ubuntu: Ubuntu Font Licence 1.0 (ubuntu-font-licence-1.0.txt).

@@ -2,14 +2,18 @@
 
    60x20  -> Haryana mutation        (white mixed-case -> fixed-font glyph cover)
   100x30  -> Maharashtra IGR         (green uppercase-alnum -> fixed-font glyph cover)
+  100x20  -> Karnataka High Court    (GD font 5 at a fixed grid -> bitmap lookup, no model)
+  120x36  -> Calcutta High Court     (mews/captcha port -> CRNN + CTC, lowercase)
   120x40  -> gstat numeric captcha   (threshold + segment + per-digit CNN)
            OR NGT portal             (exact black mask -> fixed-grid glyph lookup, no model)
            These two share a size — the only collision here — so they are told
            apart by content: gstat's ink is #333 and it never emits a pure-black
            pixel, while NGT's text is pure black. See solver/api._route_120x40.
+  120x60  -> Madras High Court       (securimage digits, additive -log cover, no model)
   150x42  -> ITAT portal             (darkness projection -> CRNN + CTC, case-insensitive)
   150x50  -> EPFO portal             (exact background subtraction -> CRNN + CTC)
   182x50  -> GST portal              (CRNN + CTC, RGB, length-6 beam)
+  200x50  -> Gujarat High Court      (SimpleCaptcha, green-channel glyph cover, no model)
   200x60  -> Kaveri portal           (exact ink mask -> sprite cover, no model)
   200x80  -> MCA portal              (exact ink mask -> CRNN + CTC)
   215x80  -> eCourts securimage      (CRNN + CTC whole-image reader)

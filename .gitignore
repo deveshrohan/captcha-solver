@@ -8,6 +8,7 @@
 !solver/epfo_model.pt
 !solver/itat_model.pt
 !solver/bharatkosh_model.pt
+!solver/calhc_model.pt
 
 # Scraped captcha images and evaluation data — NOT distributed (they target live
 # third-party endpoints). Regenerate synthetic data with the renderer instead.
@@ -53,3 +54,14 @@ mhigr_raw/
 india_capture_ledger.jsonl
 
 .india-captcha.lock
+
+# High Court captcha collection (raw images, never distributed)
+gujhc_raw/
+madhc_raw/
+calhc_raw/
+karhc_raw/
+
+# package build output
+build/
+dist/
+*.egg-info/

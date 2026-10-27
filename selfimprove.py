@@ -44,6 +44,20 @@ STATE = "selfimprove_state.json"
 
 # kind -> how to fetch, where the corpus lives, expected shape, label file
 KINDS = {
+    "gujhc": dict(size=(200, 50), length=5,
+                  charset="0123456789abcdefghijklmnopqrstuvwxy",
+                  corpus="gujhc_raw", glob="*.png", labels="gujhc_labels.json",
+                  fetch=["python3", "download_hc.py", "gujhc"], model=None),
+    "madhc": dict(size=(120, 60), length=6, charset="0123456789",
+                  corpus="madhc_raw", glob="*.png", labels="madhc_labels.json",
+                  fetch=["python3", "download_hc.py", "madhc"], model=None),
+    "karhc": dict(size=(100, 20), length=6, charset="0123456789",
+                  corpus="karhc_raw", glob="*.jpg", labels="karhc_labels.json",
+                  fetch=["python3", "download_hc.py", "karhc"], model=None),
+    "calhc": dict(size=(120, 36), length=6, charset="2346789abcdefghjmnpqrtuxyz",
+                  corpus="calhc_raw", glob="*.jpg", labels="calhc_labels.json",
+                  fetch=["python3", "download_hc.py", "calhc"],
+                  model="solver/calhc_model.pt"),
     "hrmut": dict(size=(60, 20), length=6,
                   charset="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
                   corpus="hrmut_raw", glob="*.gif", labels="hrmut_labels.json",
@@ -265,7 +279,9 @@ def cmd_adapt(args):
     cfg = KINDS[kind]
     if cfg["model"] is None:
         rebuild = {"kaveri": "solver.kaveri.extract_sprites",
-                   "udyam": "mkglyphs_udyam.py"}.get(kind, "the glyph library")
+                   "udyam": "mkglyphs_udyam.py",
+                   "gujhc": "mkglyphs_gujhc.py",
+                   "madhc": "mkglyphs_madhc.py"}.get(kind, "the glyph library")
         print(f"{kind}: nothing to train — this reader covers the ink with fixed "
               f"glyph bitmaps, not a model. If the generator changed, the fix is "
               f"to re-extract the library ({rebuild}), not to adapt weights. "

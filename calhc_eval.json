@@ -1,0 +1,377 @@
+{
+ "kind": "calhc",
+ "split": "test",
+ "n": 30,
+ "exact": 30,
+ "char_accuracy": 1.0,
+ "gate": 0.9,
+ "accepted": 30,
+ "accepted_correct": 30,
+ "retry_groups": 10,
+ "within_three_correct": 10,
+ "mean_fetches": 1.0,
+ "rows": [
+  {
+   "path": "calhc_raw/calhc_0001.jpg",
+   "label": "4jyzef",
+   "prediction": "4jyzef",
+   "confidence": 0.9997779726982117,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0004.jpg",
+   "label": "g6fthn",
+   "prediction": "g6fthn",
+   "confidence": 0.9997093677520752,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0010.jpg",
+   "label": "3u9hep",
+   "prediction": "3u9hep",
+   "confidence": 0.9997341632843018,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0015.jpg",
+   "label": "37t4yc",
+   "prediction": "37t4yc",
+   "confidence": 0.9998646378517151,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0018.jpg",
+   "label": "udam7z",
+   "prediction": "udam7z",
+   "confidence": 0.9998974204063416,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0021.jpg",
+   "label": "663bc8",
+   "prediction": "663bc8",
+   "confidence": 0.9996588826179504,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0022.jpg",
+   "label": "hc2aby",
+   "prediction": "hc2aby",
+   "confidence": 0.9997055530548096,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0025.jpg",
+   "label": "7ej3mm",
+   "prediction": "7ej3mm",
+   "confidence": 0.9997004866600037,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0028.jpg",
+   "label": "htmjh9",
+   "prediction": "htmjh9",
+   "confidence": 0.99949049949646,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0030.jpg",
+   "label": "6pufjh",
+   "prediction": "6pufjh",
+   "confidence": 0.9997113347053528,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0032.jpg",
+   "label": "2yqypj",
+   "prediction": "2yqypj",
+   "confidence": 0.9998259544372559,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0033.jpg",
+   "label": "ueq8bt",
+   "prediction": "ueq8bt",
+   "confidence": 0.9995393753051758,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0034.jpg",
+   "label": "6ac4pz",
+   "prediction": "6ac4pz",
+   "confidence": 0.9998224377632141,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0036.jpg",
+   "label": "q3aj98",
+   "prediction": "q3aj98",
+   "confidence": 0.9995123744010925,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0037.jpg",
+   "label": "enzjmy",
+   "prediction": "enzjmy",
+   "confidence": 0.9998428225517273,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0038.jpg",
+   "label": "96hy8m",
+   "prediction": "96hy8m",
+   "confidence": 0.9999025464057922,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0040.jpg",
+   "label": "7b4xqz",
+   "prediction": "7b4xqz",
+   "confidence": 0.9992122650146484,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0041.jpg",
+   "label": "9gh429",
+   "prediction": "9gh429",
+   "confidence": 0.9999253749847412,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0042.jpg",
+   "label": "99yfhz",
+   "prediction": "99yfhz",
+   "confidence": 0.9999204874038696,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0043.jpg",
+   "label": "c668cy",
+   "prediction": "c668cy",
+   "confidence": 0.999865710735321,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0044.jpg",
+   "label": "n8fzpz",
+   "prediction": "n8fzpz",
+   "confidence": 0.9997847676277161,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0049.jpg",
+   "label": "rjfztm",
+   "prediction": "rjfztm",
+   "confidence": 0.9998910427093506,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0056.jpg",
+   "label": "hf36hx",
+   "prediction": "hf36hx",
+   "confidence": 0.9997621178627014,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0057.jpg",
+   "label": "3qca78",
+   "prediction": "3qca78",
+   "confidence": 0.9998449087142944,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0058.jpg",
+   "label": "g6yetj",
+   "prediction": "g6yetj",
+   "confidence": 0.9998661279678345,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0059.jpg",
+   "label": "e3ej6q",
+   "prediction": "e3ej6q",
+   "confidence": 0.9996926784515381,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0062.jpg",
+   "label": "c38dt2",
+   "prediction": "c38dt2",
+   "confidence": 0.9998016953468323,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0069.jpg",
+   "label": "3hz2gb",
+   "prediction": "3hz2gb",
+   "confidence": 0.9994609355926514,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0071.jpg",
+   "label": "abmc6r",
+   "prediction": "abmc6r",
+   "confidence": 0.9997918009757996,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "calhc_raw/calhc_0078.jpg",
+   "label": "tj7ddz",
+   "prediction": "tj7ddz",
+   "confidence": 0.9998078942298889,
+   "correct": true,
+   "chars": 6
+  }
+ ],
+ "groups": [
+  {
+   "paths": [
+    "calhc_raw/calhc_0001.jpg",
+    "calhc_raw/calhc_0004.jpg",
+    "calhc_raw/calhc_0010.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9997779726982117
+  },
+  {
+   "paths": [
+    "calhc_raw/calhc_0015.jpg",
+    "calhc_raw/calhc_0018.jpg",
+    "calhc_raw/calhc_0021.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9998646378517151
+  },
+  {
+   "paths": [
+    "calhc_raw/calhc_0022.jpg",
+    "calhc_raw/calhc_0025.jpg",
+    "calhc_raw/calhc_0028.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9997055530548096
+  },
+  {
+   "paths": [
+    "calhc_raw/calhc_0030.jpg",
+    "calhc_raw/calhc_0032.jpg",
+    "calhc_raw/calhc_0033.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9997113347053528
+  },
+  {
+   "paths": [
+    "calhc_raw/calhc_0034.jpg",
+    "calhc_raw/calhc_0036.jpg",
+    "calhc_raw/calhc_0037.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9998224377632141
+  },
+  {
+   "paths": [
+    "calhc_raw/calhc_0038.jpg",
+    "calhc_raw/calhc_0040.jpg",
+    "calhc_raw/calhc_0041.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9999025464057922
+  },
+  {
+   "paths": [
+    "calhc_raw/calhc_0042.jpg",
+    "calhc_raw/calhc_0043.jpg",
+    "calhc_raw/calhc_0044.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9999204874038696
+  },
+  {
+   "paths": [
+    "calhc_raw/calhc_0049.jpg",
+    "calhc_raw/calhc_0056.jpg",
+    "calhc_raw/calhc_0057.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9998910427093506
+  },
+  {
+   "paths": [
+    "calhc_raw/calhc_0058.jpg",
+    "calhc_raw/calhc_0059.jpg",
+    "calhc_raw/calhc_0062.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9998661279678345
+  },
+  {
+   "paths": [
+    "calhc_raw/calhc_0069.jpg",
+    "calhc_raw/calhc_0071.jpg",
+    "calhc_raw/calhc_0078.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9994609355926514
+  }
+ ],
+ "label_free": {
+  "n": 300,
+  "above_gate": 299,
+  "conf_percentiles": {
+   "0": 0.7348049283027649,
+   "1": 0.9970104348659515,
+   "5": 0.9992097616195679,
+   "50": 0.9998076558113098
+  }
+ }
+}

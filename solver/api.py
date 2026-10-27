@@ -26,19 +26,23 @@ import numpy as np
 import torch
 from PIL import Image
 
-from solver import bharatkosh as BK
-from solver import epfo as E
-from solver import gst as G
-from solver import itat as T
-from solver import kaveri as K
-from solver import mca as M
-from solver import ngt as N
-from solver import securimage as S
-from solver import udyam as Y
-from solver import hrmut as H
-from solver import mhigr as I
-from solver.model import DigitCNN
-from solver.pipeline import solve_image as _solve_gstat_path
+from . import bharatkosh as BK
+from . import epfo as E
+from . import gst as G
+from . import itat as T
+from . import kaveri as K
+from . import mca as M
+from . import ngt as N
+from . import securimage as S
+from . import udyam as Y
+from . import hrmut as H
+from . import mhigr as I
+from . import calhc as CH
+from . import gujhc as GH
+from . import madhc as MH
+from . import karhc as KH
+from .model import DigitCNN
+from .pipeline import solve_image as _solve_gstat_path
 
 import os as _os
 _HERE = _os.path.dirname(_os.path.abspath(__file__))
@@ -49,6 +53,7 @@ _MCA_MODEL = _os.path.join(_HERE, "mca_model.pt")
 _EPFO_MODEL = _os.path.join(_HERE, "epfo_model.pt")
 _ITAT_MODEL = _os.path.join(_HERE, "itat_model.pt")
 _BHARATKOSH_MODEL = _os.path.join(_HERE, "bharatkosh_model.pt")
+_CALHC_MODEL = _os.path.join(_HERE, "calhc_model.pt")
 
 _lock = threading.Lock()
 _securi = None
@@ -58,6 +63,7 @@ _mca = None
 _epfo = None
 _itat = None
 _bharatkosh = None
+_calhc = None
 
 def _route_120x40(pil):
     """Split the one size collision in the repo: gstat and NGT are both 120x40.
@@ -89,6 +95,35 @@ _SIZES = {
     (225, 80): "udyam",
     (150, 42): "itat",
     (150, 40): "bharatkosh",           # ITAT is 150x42 -- no collision
+    (200, 50): "gujhc",                # Gujarat HC (MCA 200x80, Kaveri 200x60)
+    (120, 60): "madhc",                # Madras HC
+    (120, 36): "calhc",                # Calcutta HC
+    (100, 20): "karhc",                # Karnataka HC (MH IGR is 100x30)
+}
+
+# Recommended `min_conf` per kind. For the newer readers it was chosen on the
+# validation split (never the test split); for the older ones it is the value
+# each README section recommends. Cover readers report fidelity, so their
+# gates sit near 1.0. For the model readers (securimage, gst, mca, epfo, itat,
+# bharatkosh, calhc) confidence is NOT accuracy -- see the README -- so pair
+# the gate with submit feedback (captcha_solver.solve_with_retry(submit=...)).
+GATES = {
+    "securimage": 0.90,
+    "gstat": 0.90,
+    "gst": 0.90,
+    "mca": 0.90,
+    "epfo": 0.90,
+    "itat": 0.90,
+    "bharatkosh": 0.90,
+    "kaveri": 0.99,          # 1.0 whenever an exact sprite cover exists
+    "udyam": 0.85,           # real 0.87-0.99; changed fonts score <= 0.75
+    "ngt": 1.0,              # only a byte-exact match reaches 1.0
+    "hrmut": 0.97,
+    "mhigr": 0.90,
+    "madhc": 0.99,
+    "gujhc": 0.90,
+    "calhc": 0.90,
+    "karhc": 0.70,
 }
 
 # Characters that carry no distinguishing information in a given captcha style,
@@ -210,8 +245,21 @@ def _load_bharatkosh():
     return _bharatkosh
 
 
+def _load_calhc():
+    global _calhc
+    if _calhc is None:
+        with _lock:
+            if _calhc is None:
+                m = CH.CalhcCRNN()
+                m.load_state_dict(torch.load(_CALHC_MODEL, map_location="cpu"))
+                m.eval()
+                _calhc = m
+    return _calhc
+
+
 def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False,
-           kaveri=False, udyam=False, itat=False, ngt=False, bharatkosh=False, hrmut=False, mhigr=False):
+           kaveri=False, udyam=False, itat=False, ngt=False, bharatkosh=False, hrmut=False, mhigr=False,
+           gujhc=False, madhc=False, calhc=False, karhc=False):
     """Pre-load models at scraper startup so the first live solve isn't slow.
     Also runs one dummy forward to trigger lazy CUDA/oneDNN init. Call once.
 
@@ -245,9 +293,19 @@ def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False,
         with torch.no_grad():
             m(torch.zeros(1, 1, BK.IN_H, BK.IN_W))
     if hrmut or mhigr:
-        from solver.fixedgreen import library
+        from .fixedgreen import library
         if hrmut: library("hrmut")
         if mhigr: library("mhigr")
+    if gujhc:
+        GH.templates()
+    if madhc:
+        MH.templates()
+    if karhc:
+        KH.glyphs()
+    if calhc:
+        m = _load_calhc()
+        with torch.no_grad():
+            m(torch.zeros(1, 1, CH.IN_H, CH.IN_W))
     if kaveri:
         K.glyphs()
     if udyam:
@@ -441,6 +499,52 @@ def solve_bharatkosh_with_rerender(fetch, min_conf=0.90, max_renders=5,
     return text, conf, n, max_texts
 
 
+def solve_gujhc(image):
+    """Solve a Gujarat High Court captcha (200x50, 5 lowercase-alnum chars).
+    Returns (text, confidence).
+
+    No model: SimpleCaptcha draws DejaVu Sans Mono glyphs at pen positions
+    that follow from the characters themselves, so the read is a cover of the
+    green channel (where all three ink colours are pure transmittance) with
+    the noise line masked. Confidence is the fraction of visible ink the five
+    glyphs explain, capped by the margin to the next-best word."""
+    return GH.solve_image(image)
+
+
+def solve_madhc(image):
+    """Solve a Madras High Court captcha (120x60, 6 digits).
+    Returns (text, confidence).
+
+    No model: securimage with angles, warp and noise off draws AHGBold digits
+    at 80% opacity, so overlapping digits ADD in -log space and the read is an
+    exact cover. Confidence is cover fidelity (>= 0.997 on every real image
+    harvested), so gate it at `GATES["madhc"]`."""
+    return MH.solve_image(image)
+
+
+def solve_karhc(image):
+    """Solve a Karnataka High Court captcha (100x20, 6 digits).
+    Returns (text, confidence).
+
+    No model and no learned templates: six cells of GD's built-in font 5
+    (gdFontGiant) at a fixed origin, matched against that font's bitmaps from
+    libgd's source. JPEG blur caps confidence near 0.9 even on a clean read,
+    so gate at `GATES["karhc"]`."""
+    return KH.solve_image(image)
+
+
+def solve_calhc(image):
+    """Solve a Calcutta High Court captcha (120x36, 6 chars from
+    `2346789abcdefghjmnpqrtuxyz`). Returns (text, confidence).
+
+    The portal lowercases both the drawn text and the submission (mews/captcha
+    with `sensitive` off), so the read is lowercase and case never matters.
+    confidence is the CTC beam's geometric-mean per-character probability."""
+    arr = CH.load_real(_to_pil_rgb(image))[None]
+    text, conf = CH.predict(_load_calhc(), arr, "cpu")
+    return text[0], float(conf[0])
+
+
 def solve_bytes(image, kind=None):
     """Auto-route and solve. Returns (text, confidence, kind).
 
@@ -454,7 +558,15 @@ def solve_bytes(image, kind=None):
             kind = kind(pil)
         if kind is None:                      # unknown size: fall back to width
             kind = "securimage" if pil.width > 180 else "gstat"
-    if kind == "hrmut":
+    if kind == "gujhc":
+        text, conf = solve_gujhc(pil)
+    elif kind == "madhc":
+        text, conf = solve_madhc(pil)
+    elif kind == "calhc":
+        text, conf = solve_calhc(pil)
+    elif kind == "karhc":
+        text, conf = solve_karhc(pil)
+    elif kind == "hrmut":
         text, conf = H.solve_image(pil)
     elif kind == "mhigr":
         text, conf = I.solve_image(pil)

@@ -4,10 +4,11 @@ Local, synthetic-trained captcha readers. `solve.py` auto-routes by image size
 (and, where two share one, by content) and runs on CPU with the included weights.
 
 > Ships code, the synthetic data generators, and pretrained weights — no captcha
-> images. Every *model* here is trained on synthetic data only. The five
-> model-free readers (kaveri, udyam, ngt, hrmut, mhigr) are the exception worth naming: they
+> images. Every *model* here is trained on synthetic data only. The model-free
+> readers are the exception worth naming. kaveri, udyam, ngt, hrmut and mhigr
 > ship a library of individual glyph bitmaps extracted from real captchas, since
-> a template cover is only as good as the templates. Use only against services
+> a template cover is only as good as the templates. gujhc and madhc ship font
+> renders refined on real train images, and karhc ships GD's own font 5 bitmaps. Use only against services
 > you are authorized to automate. Endpoint URLs are placeholders; set
 > `SECURIMAGE_URL` to your own. MIT licensed.
 
@@ -25,13 +26,23 @@ Local, synthetic-trained captcha readers. `solve.py` auto-routes by image size
 | bharatkosh | 150×40 | 6 mixed-case alnum, per-glyph face/size/rotation, two fixed bars | blinded bar rows → CRNN+CTC, **vote across `New=0` re-renders**, label-free fine-tune | **83.3% exact (20/24), 97.2% char** voted over 5 renders; 87.5% case-folded; 82.5% from one render |
 | hrmut | 60×20 | 6 white mixed-case alnum on green | fixed-font glyph cover, **no model** | **86.7% exact (26/30)**; confidence-gated ≤3-image replay **10/10** |
 | mhigr | 100×30 | 6 green uppercase-alnum, green speckle | fixed-font glyph cover, **no model** | **100% exact (30/30)**; confidence-gated ≤3-image replay **10/10** |
+| gujhc | 200×50 | 5 lowercase-alnum (no `z`), black/blue/red, line over text | green-channel transmittance cover, pens from font outlines, **no model** | **30/30 exact**; 28/30 above gate (all correct); 282/300 harvested above gate |
+| madhc | 120×60 | 6 overlapping grey digits | additive −log cover of AHGBold digits, **no model** | **30/30 exact**; 300/300 harvested at fidelity ≥ 0.998 |
+| calhc | 120×36 | 6 of `2346789abcdefghjmnpqrtuxyz`, per-glyph font/size/tilt | mews/captcha port → CRNN+CTC, synthetic-only | **30/30 exact**; 299/300 harvested above gate |
+| karhc | 100×20 | 6 black digits, faint lavender noise | GD font 5 on a fixed grid → bitmap lookup, **no model** | **30/30 exact**; 92/92 harvested above gate |
 
 ```bash
 pip install torch numpy pillow       # inference deps (scipy is training-only)
 python solve.py path/to/captcha.png  # auto-routes by size
 ```
 
-Programmatic use: `solver/api.py` — `solve_bytes`, `solve_with_retry`, `warmup`,
+**As a package:** `pip install .` gives `import captcha_solver`. It identifies
+the captcha from the image, reads it, and can retry by itself: it re-fetches on
+low-confidence or ambiguous reads and, given a `submit` callback, on answers
+the site rejects. See [PACKAGE.md](PACKAGE.md) and the API reference in [docs/API.md](docs/API.md). The wheel bundles every model
+(~160 MB).
+
+Lower level: `solver/api.py`: `solve_bytes`, `solve_with_retry`, `warmup`,
 and for Bharatkosh `solve_bharatkosh_group` / `solve_bharatkosh_with_rerender`.
 
 ---
@@ -1171,11 +1182,16 @@ before fetching again. The GST captcha behaves the same way.
 
 ## Layout
 
+- `captcha_solver/` — the installable public API (`identify`, `solve`,
+  `solve_with_retry`, `solve_url`, `warmup`, CLI); `pyproject.toml` installs
+  `solver/` inside it as `captcha_solver.engine`
 - `solver/` — renderers, models, decode, pipeline, `api.py`
 - `train_securimage.py`, `train_gst.py`, `train_mca.py`, `train_epfo.py`,
   `train_itat.py`, `train_bharatkosh.py`, `train.py`, `gen_corpus.py`,
   `finetune_gst.py`, `finetune_mca.py`, `finetune_itat.py`,
   `finetune_bharatkosh.py`
+- High Courts: `download_hc.py`, `finalize_hc_labels.py`, `mkglyphs_gujhc.py`,
+  `mkglyphs_madhc.py`, `train_calhc.py`, `eval_hc.py` (see the section below)
 - `mkglyphs_udyam.py`, `mkglyphs_ngt.py` — rebuild the Udyam / NGT glyph
   libraries from a corpus (Kaveri's equivalent lives in
   `solver.kaveri.extract_sprites`)
@@ -1194,6 +1210,11 @@ before fetching again. The GST captcha behaves the same way.
 - `fonts/AHGBold.ttf` — Alte Haas Grotesk Bold (via the Securimage project)
 - `fonts/DejaVu*.ttf` — DejaVu fonts (Bitstream Vera / Arev licence,
   `fonts/DejaVu-LICENSE`), used by the GST, MCA and ITAT renderers
+- `fonts/DejaVuSansMono.ttf` — DejaVu Sans Mono 2.37 (same licence), the
+  Gujarat HC font
+- `fonts/mews/` — the six fonts bundled with mewebstudio/captcha (OFL / Apache
+  2.0 / Ubuntu Font Licence, licence files alongside), used by the Calcutta HC
+  renderer at training time only
 - the Bharatkosh renderer loads Windows core faces (Arial, Verdana, Tahoma, …)
   from `/System/Library/Fonts/Supplemental` by path at *training* time only; they
   are not redistributed here, and inference never touches a font
@@ -1240,3 +1261,87 @@ Image-only collection is available through `download_india.py KIND N DIR` with
 `HRMUT_CAPTCHA_URL` / `MHIGR_CAPTCHA_URL` set to an authorized public image URL.
 It refuses more than 150 cumulative attempts per kind and stops on any error.
 Do not run a second collector or use it against login/OTP pages.
+
+
+## High Court readers (`gujhc`, `madhc`, `calhc`, `karhc`)
+
+Four High Court case-status captchas, each from a different generator. Each
+was identified from its own pixels before any reader was chosen.
+
+| kind | endpoint | generator |
+|---|---|---|
+| gujhc | `gujarathc-casestatus.nic.in/gujarathc/CaptchaServlet?ct=S` | Java SimpleCaptcha |
+| madhc | `hcmadras.tn.gov.in/securimage_show.php?namespace=contact&…` | PHP Securimage, digits, no warp |
+| calhc | `www.calcuttahighcourt.gov.in/captcha/default?<8 random>` | Laravel mews/captcha (old release) |
+| karhc | `judiciary.karnataka.gov.in/captcha.php` | PHP GD `imagestring` font 5 |
+
+**Endpoint behaviour (measured).** Gujarat answers 200 with an *empty* body
+unless `ct=S` is present; the page's `MainPage.js` builds
+`CaptchaServlet?ct=S&tm=<ms>`. It also drops kept-alive connections every few
+dozen requests. Karnataka speaks **TLS 1.3 only**, so a Python linked against
+LibreSSL 2.8 (the macOS system `python3`) fails with
+`TLSV1_ALERT_PROTOCOL_VERSION`. Its JPEG is served as `text/html`, so sniff the
+magic. None of the four gates on user agent. `download_hc.py KIND N DIR`
+collects at one request per 3 s and stops on any non-image response.
+
+**gujhc: an additive cover in the green channel.** SimpleCaptcha's
+`DefaultWordRenderer` draws DejaVu Sans Mono 40 from x = round(0.05·W) = 10 on
+baseline H − round(0.25·H) = 37. It advances each pen by
+`(int) getVisualBounds().getWidth()`, the truncated *outline* width, which
+`mkglyphs_gujhc.py` computes from the font file. Truncation reads validation
+10/10 against 1/10 for rounding, so every pen position follows from the
+characters. All three ink colours have green = 0, so `−log(G/247)` sums the
+glyphs whatever the draw order. The noise line, an aliased 4 px polygon from
+x=0 to x=W, is fitted on the text-free margins and masked out. Errors are
+scored in transmittance, because −log clips on opaque pixels. `z` occurs 0
+times in 760 labelled characters (≈21 expected), so it is excluded.
+Low-confidence reads are almost all `h`/`n` or `t`/`l` where the line covers
+the distinguishing stroke; retry those.
+
+**madhc: −log makes overlaps add.** Securimage draws AHGBold digits at 32 px
+(24 pt at GD's 96 dpi), #323232 at 80% opacity, baseline 41. It steps by each
+glyph's ink box minus 0–2 px (13/15/17 px; 11/13/15 after a `1`). One layer
+reads 91 and two overlapping layers read ≈58, so `−log((I−50)/205)` turns
+overlapping digits into a sum. The reader is a beam search over digit and pen
+position. Templates start as FreeType renders and are median-refined on the
+train split, because GD hints `1` a pixel differently.
+
+**calhc: a CRNN trained on a renderer port.** Per character, mews picks one
+of its six bundled fonts, size `rand(26,36)`, angle `rand(−15,15)`, and pins the
+upper-left of GD's `imagettfbbox` to `(4 + k·116/6, 6)`. That box's top is
+not the glyph's ink top. Real ascender and x-height glyphs share a baseline,
+and x-height tops sit 5 px lower, so `solver/calhc.py` hangs glyphs from each
+font's cap height. That one fix took real char accuracy from 68% to 93% at
+epoch 2. The site keeps `sensitive` off: mews lowercases both the drawn text
+and the submission, and the default character list removes `0 1 5 i k l o s v
+w`, so no homoglyph pair can occur. The background is flat #c4c4c4 with no noise
+lines, saved as libgd JPEG q75 4:2:0. Training is synthetic-only
+(`train_calhc.py`). Real labels only pick the checkpoint, and only non-test ones.
+
+**karhc: six bitmap lookups.** GD's font 5 (gdFontGiant, 9×15) sits at origin
+(25, 0) in every harvested image. The reader matches each cell against the
+bitmaps transcribed from libgd's `src/gdfontg.c`, so no template was learned
+from an image. Confidence is the margin to the runner-up digit relative to the
+two bitmaps' distance, capped by fit. JPEG blur holds clean reads near 0.85–0.9,
+so the gate is 0.70.
+
+**Labels and splits.** Each kind had two independent blind visual passes (no
+reader output consulted), and disagreements were re-viewed at pixel scale.
+madhc: 80 images, 0 disagreements. gujhc: 152, 0. karhc: 64, 0. calhc: 80, with
+4 dropped as unreadable to both labellers (a/q stems merged into a neighbour, a
+Khand g/9, a glyph hidden under a bold `m`), recorded in
+`calhc_adjudication.json`. `finalize_hc_labels.py` pins 30 test and 10
+validation images per kind by filename; later labels only join train. Gates
+(`solver.api.GATES`) were chosen on validation.
+
+**Caveats.** Thirty test images per kind can show that errors are rare, not
+how rare. 30/30 bounds the true exact rate at ≥ 90% (95% one-sided). The
+label-free legs (`eval_hc.py`, every harvested image) are the larger
+measurement, but a confident wrong read cannot appear in them. Unreadable
+Calcutta images exist in production too. They should come back below the
+gate, and the caller should then fetch a new captcha on the same session.
+
+```bash
+python3 eval_hc.py gujhc            # labelled test leg + label-free leg
+python3 selfimprove.py check --kinds gujhc madhc calhc karhc
+```

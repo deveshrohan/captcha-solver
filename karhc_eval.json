@@ -1,0 +1,377 @@
+{
+ "kind": "karhc",
+ "split": "test",
+ "n": 30,
+ "exact": 30,
+ "char_accuracy": 1.0,
+ "gate": 0.7,
+ "accepted": 30,
+ "accepted_correct": 30,
+ "retry_groups": 10,
+ "within_three_correct": 10,
+ "mean_fetches": 1.0,
+ "rows": [
+  {
+   "path": "karhc_raw/karhc_0000.jpg",
+   "label": "605253",
+   "prediction": "605253",
+   "confidence": 0.9068976640701294,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0004.jpg",
+   "label": "937493",
+   "prediction": "937493",
+   "confidence": 0.8496732169751023,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0007.jpg",
+   "label": "643523",
+   "prediction": "643523",
+   "confidence": 0.8882521389358743,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0009.jpg",
+   "label": "913367",
+   "prediction": "913367",
+   "confidence": 0.8549365824960935,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0010.jpg",
+   "label": "605585",
+   "prediction": "605585",
+   "confidence": 0.9059233388499498,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0015.jpg",
+   "label": "909033",
+   "prediction": "909033",
+   "confidence": 0.9058882744800579,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0017.jpg",
+   "label": "589817",
+   "prediction": "589817",
+   "confidence": 0.8834522585392575,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0018.jpg",
+   "label": "483436",
+   "prediction": "483436",
+   "confidence": 0.8625486721530804,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0021.jpg",
+   "label": "393265",
+   "prediction": "393265",
+   "confidence": 0.8927285797461263,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0022.jpg",
+   "label": "632251",
+   "prediction": "632251",
+   "confidence": 0.8733624425859663,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0025.jpg",
+   "label": "742656",
+   "prediction": "742656",
+   "confidence": 0.8673412624853603,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0028.jpg",
+   "label": "286252",
+   "prediction": "286252",
+   "confidence": 0.9144163458501989,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0029.jpg",
+   "label": "242609",
+   "prediction": "242609",
+   "confidence": 0.9399324368840964,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0030.jpg",
+   "label": "535795",
+   "prediction": "535795",
+   "confidence": 0.8481487393516993,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0032.jpg",
+   "label": "548089",
+   "prediction": "548089",
+   "confidence": 0.9090909090909091,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0033.jpg",
+   "label": "707107",
+   "prediction": "707107",
+   "confidence": 0.8444096999130702,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0034.jpg",
+   "label": "965462",
+   "prediction": "965462",
+   "confidence": 0.9119407103143163,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0037.jpg",
+   "label": "961346",
+   "prediction": "961346",
+   "confidence": 0.8991009023607107,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0039.jpg",
+   "label": "968015",
+   "prediction": "968015",
+   "confidence": 0.9031610578686823,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0040.jpg",
+   "label": "922438",
+   "prediction": "922438",
+   "confidence": 0.8845769642562467,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0042.jpg",
+   "label": "108313",
+   "prediction": "108313",
+   "confidence": 0.917431199349622,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0044.jpg",
+   "label": "333979",
+   "prediction": "333979",
+   "confidence": 0.847043500846951,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0045.jpg",
+   "label": "859257",
+   "prediction": "859257",
+   "confidence": 0.8570957741176021,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0046.jpg",
+   "label": "906881",
+   "prediction": "906881",
+   "confidence": 0.8466666804419624,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0048.jpg",
+   "label": "112047",
+   "prediction": "112047",
+   "confidence": 0.8536748147961201,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0052.jpg",
+   "label": "364389",
+   "prediction": "364389",
+   "confidence": 0.9109609144848645,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0055.jpg",
+   "label": "395037",
+   "prediction": "395037",
+   "confidence": 0.9086143620320372,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0058.jpg",
+   "label": "365376",
+   "prediction": "365376",
+   "confidence": 0.8411111566755507,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0062.jpg",
+   "label": "253322",
+   "prediction": "253322",
+   "confidence": 0.8894118421217975,
+   "correct": true,
+   "chars": 6
+  },
+  {
+   "path": "karhc_raw/karhc_0063.jpg",
+   "label": "210056",
+   "prediction": "210056",
+   "confidence": 0.8771929977440862,
+   "correct": true,
+   "chars": 6
+  }
+ ],
+ "groups": [
+  {
+   "paths": [
+    "karhc_raw/karhc_0000.jpg",
+    "karhc_raw/karhc_0004.jpg",
+    "karhc_raw/karhc_0007.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9068976640701294
+  },
+  {
+   "paths": [
+    "karhc_raw/karhc_0009.jpg",
+    "karhc_raw/karhc_0010.jpg",
+    "karhc_raw/karhc_0015.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.8549365824960935
+  },
+  {
+   "paths": [
+    "karhc_raw/karhc_0017.jpg",
+    "karhc_raw/karhc_0018.jpg",
+    "karhc_raw/karhc_0021.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.8834522585392575
+  },
+  {
+   "paths": [
+    "karhc_raw/karhc_0022.jpg",
+    "karhc_raw/karhc_0025.jpg",
+    "karhc_raw/karhc_0028.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.8733624425859663
+  },
+  {
+   "paths": [
+    "karhc_raw/karhc_0029.jpg",
+    "karhc_raw/karhc_0030.jpg",
+    "karhc_raw/karhc_0032.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9399324368840964
+  },
+  {
+   "paths": [
+    "karhc_raw/karhc_0033.jpg",
+    "karhc_raw/karhc_0034.jpg",
+    "karhc_raw/karhc_0037.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.8444096999130702
+  },
+  {
+   "paths": [
+    "karhc_raw/karhc_0039.jpg",
+    "karhc_raw/karhc_0040.jpg",
+    "karhc_raw/karhc_0042.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9031610578686823
+  },
+  {
+   "paths": [
+    "karhc_raw/karhc_0044.jpg",
+    "karhc_raw/karhc_0045.jpg",
+    "karhc_raw/karhc_0046.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.847043500846951
+  },
+  {
+   "paths": [
+    "karhc_raw/karhc_0048.jpg",
+    "karhc_raw/karhc_0052.jpg",
+    "karhc_raw/karhc_0055.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.8536748147961201
+  },
+  {
+   "paths": [
+    "karhc_raw/karhc_0058.jpg",
+    "karhc_raw/karhc_0062.jpg",
+    "karhc_raw/karhc_0063.jpg"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.8411111566755507
+  }
+ ],
+ "label_free": {
+  "n": 92,
+  "above_gate": 92,
+  "conf_percentiles": {
+   "0": 0.8322222497728136,
+   "1": 0.832298286095218,
+   "5": 0.8401111218664381,
+   "50": 0.8840146113977521
+  }
+ }
+}

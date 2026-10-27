@@ -1,0 +1,377 @@
+{
+ "kind": "gujhc",
+ "split": "test",
+ "n": 30,
+ "exact": 30,
+ "char_accuracy": 1.0,
+ "gate": 0.9,
+ "accepted": 28,
+ "accepted_correct": 28,
+ "retry_groups": 10,
+ "within_three_correct": 10,
+ "mean_fetches": 1.0,
+ "rows": [
+  {
+   "path": "gujhc_raw/gujhc_0001.png",
+   "label": "4w0g9",
+   "prediction": "4w0g9",
+   "confidence": 0.9996800216545452,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0002.png",
+   "label": "wfqvj",
+   "prediction": "wfqvj",
+   "confidence": 0.999761166925068,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0009.png",
+   "label": "und9d",
+   "prediction": "und9d",
+   "confidence": 0.6453808711802708,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0014.png",
+   "label": "jket7",
+   "prediction": "jket7",
+   "confidence": 0.9998604712876193,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0015.png",
+   "label": "pqomw",
+   "prediction": "pqomw",
+   "confidence": 0.9997002725842974,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0018.png",
+   "label": "kctpn",
+   "prediction": "kctpn",
+   "confidence": 0.9998488125967083,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0021.png",
+   "label": "58b9i",
+   "prediction": "58b9i",
+   "confidence": 0.9997959158652165,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0022.png",
+   "label": "7hrqq",
+   "prediction": "7hrqq",
+   "confidence": 0.9998358190292741,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0025.png",
+   "label": "61ab6",
+   "prediction": "61ab6",
+   "confidence": 0.9997402306401172,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0027.png",
+   "label": "9v8sh",
+   "prediction": "9v8sh",
+   "confidence": 0.999691235774979,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0028.png",
+   "label": "nc4eq",
+   "prediction": "nc4eq",
+   "confidence": 0.9997962300058024,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0030.png",
+   "label": "9iv1c",
+   "prediction": "9iv1c",
+   "confidence": 0.9997621872226974,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0032.png",
+   "label": "u6msy",
+   "prediction": "u6msy",
+   "confidence": 0.999669614089426,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0033.png",
+   "label": "trott",
+   "prediction": "trott",
+   "confidence": 0.9999517399736486,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0035.png",
+   "label": "aj3j8",
+   "prediction": "aj3j8",
+   "confidence": 0.9997268083865545,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0039.png",
+   "label": "bguvd",
+   "prediction": "bguvd",
+   "confidence": 0.9997404111328311,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0040.png",
+   "label": "ssmho",
+   "prediction": "ssmho",
+   "confidence": 0.97569471961177,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0041.png",
+   "label": "oouxb",
+   "prediction": "oouxb",
+   "confidence": 0.9998005854043298,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0043.png",
+   "label": "6qiye",
+   "prediction": "6qiye",
+   "confidence": 0.9997740910065248,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0044.png",
+   "label": "hpa03",
+   "prediction": "hpa03",
+   "confidence": 0.9997246147362882,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0046.png",
+   "label": "0crdp",
+   "prediction": "0crdp",
+   "confidence": 0.9998209528839596,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0050.png",
+   "label": "trqie",
+   "prediction": "trqie",
+   "confidence": 0.9999146598817757,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0054.png",
+   "label": "224a6",
+   "prediction": "224a6",
+   "confidence": 0.9996925418576179,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0059.png",
+   "label": "f3d94",
+   "prediction": "f3d94",
+   "confidence": 0.9997550624409143,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0060.png",
+   "label": "pdor7",
+   "prediction": "pdor7",
+   "confidence": 0.9997343249205481,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0065.png",
+   "label": "0kdkp",
+   "prediction": "0kdkp",
+   "confidence": 0.999821164175513,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0067.png",
+   "label": "r5fkj",
+   "prediction": "r5fkj",
+   "confidence": 0.9998583033969,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0069.png",
+   "label": "2ci0k",
+   "prediction": "2ci0k",
+   "confidence": 0.9998571959830307,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0070.png",
+   "label": "2hrli",
+   "prediction": "2hrli",
+   "confidence": 0.6530738419793666,
+   "correct": true,
+   "chars": 5
+  },
+  {
+   "path": "gujhc_raw/gujhc_0078.png",
+   "label": "y6ecb",
+   "prediction": "y6ecb",
+   "confidence": 0.9997102803582478,
+   "correct": true,
+   "chars": 5
+  }
+ ],
+ "groups": [
+  {
+   "paths": [
+    "gujhc_raw/gujhc_0001.png",
+    "gujhc_raw/gujhc_0002.png",
+    "gujhc_raw/gujhc_0009.png"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9996800216545452
+  },
+  {
+   "paths": [
+    "gujhc_raw/gujhc_0014.png",
+    "gujhc_raw/gujhc_0015.png",
+    "gujhc_raw/gujhc_0018.png"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9998604712876193
+  },
+  {
+   "paths": [
+    "gujhc_raw/gujhc_0021.png",
+    "gujhc_raw/gujhc_0022.png",
+    "gujhc_raw/gujhc_0025.png"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9997959158652165
+  },
+  {
+   "paths": [
+    "gujhc_raw/gujhc_0027.png",
+    "gujhc_raw/gujhc_0028.png",
+    "gujhc_raw/gujhc_0030.png"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.999691235774979
+  },
+  {
+   "paths": [
+    "gujhc_raw/gujhc_0032.png",
+    "gujhc_raw/gujhc_0033.png",
+    "gujhc_raw/gujhc_0035.png"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.999669614089426
+  },
+  {
+   "paths": [
+    "gujhc_raw/gujhc_0039.png",
+    "gujhc_raw/gujhc_0040.png",
+    "gujhc_raw/gujhc_0041.png"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9997404111328311
+  },
+  {
+   "paths": [
+    "gujhc_raw/gujhc_0043.png",
+    "gujhc_raw/gujhc_0044.png",
+    "gujhc_raw/gujhc_0046.png"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9997740910065248
+  },
+  {
+   "paths": [
+    "gujhc_raw/gujhc_0050.png",
+    "gujhc_raw/gujhc_0054.png",
+    "gujhc_raw/gujhc_0059.png"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9999146598817757
+  },
+  {
+   "paths": [
+    "gujhc_raw/gujhc_0060.png",
+    "gujhc_raw/gujhc_0065.png",
+    "gujhc_raw/gujhc_0067.png"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9997343249205481
+  },
+  {
+   "paths": [
+    "gujhc_raw/gujhc_0069.png",
+    "gujhc_raw/gujhc_0070.png",
+    "gujhc_raw/gujhc_0078.png"
+   ],
+   "used": 1,
+   "accepted": true,
+   "correct": true,
+   "confidence": 0.9998571959830307
+  }
+ ],
+ "label_free": {
+  "n": 300,
+  "above_gate": 282,
+  "conf_percentiles": {
+   "0": 0.2100415219195499,
+   "1": 0.2233854447679226,
+   "5": 0.5315622788552627,
+   "50": 0.9997577954434861
+  }
+ }
+}

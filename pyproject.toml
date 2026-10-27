@@ -1,36 +1,7 @@
+# Package metadata lives in setup.cfg rather than a [project] table: a
+# setuptools older than 61 (e.g. macOS system Python's 58, which pip < 22 can
+# pick up inside a --system-site-packages venv) ignores [project] and silently
+# builds an empty "UNKNOWN 0.0.0" wheel. setup.cfg works with every setuptools.
 [build-system]
-requires = ["setuptools>=64", "wheel"]
+requires = ["setuptools>=40.8", "wheel"]
 build-backend = "setuptools.build_meta"
-
-[project]
-name = "captcha-solver"
-version = "0.1.0"
-description = "Offline readers for Indian government-portal captchas: identifies the captcha from the image, reads it, and retries until solved."
-readme = "PACKAGE.md"
-requires-python = ">=3.9"
-license = { text = "MIT" }
-dependencies = ["numpy", "pillow", "torch"]
-
-[project.optional-dependencies]
-http = ["requests"]                      # captcha_solver.solve_url
-train = ["scipy", "fonttools", "requests"]   # the repo's train/mkglyphs/download scripts
-
-[project.scripts]
-captcha-solver = "captcha_solver.cli:main"
-
-[tool.setuptools]
-# The engine lives in ./solver (the repo's scripts import it as `solver`);
-# installed, it becomes captcha_solver.engine so nothing generic like
-# `solver` lands in site-packages.
-packages = ["captcha_solver", "captcha_solver.engine"]
-package-dir = { "captcha_solver.engine" = "solver" }
-include-package-data = false
-
-[tool.setuptools.package-data]
-# Production weights only, listed by name (mirrors the .gitignore whitelist)
-# so a stray experimental checkpoint in solver/ can never ship.
-"captcha_solver.engine" = [
-    "*.json",
-    "model.pt", "securimage_model.pt", "gst_model.pt", "mca_model.pt",
-    "epfo_model.pt", "itat_model.pt", "bharatkosh_model.pt", "calhc_model.pt",
-]

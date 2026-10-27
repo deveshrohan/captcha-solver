@@ -39,6 +39,13 @@ class TestIdentifyAndSolve(unittest.TestCase):
         self.assertFalse(r.accepted)
         self.assertEqual(r.reason, "no-text")
 
+    def test_package_version_matches_setup_cfg(self):
+        import configparser
+        from pathlib import Path
+        cfg = configparser.ConfigParser()
+        cfg.read(Path(__file__).resolve().parents[1] / "setup.cfg")
+        self.assertEqual(cfg["metadata"]["version"], cs.__version__)
+
     def test_kinds_table_matches_the_engine(self):
         for kind, info in cs.KINDS.items():
             route = core._api._SIZES[info["size"]]

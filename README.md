@@ -1183,7 +1183,7 @@ before fetching again. The GST captcha behaves the same way.
 ## Layout
 
 - `captcha_solver/` — the installable public API (`identify`, `solve`,
-  `solve_with_retry`, `solve_url`, `warmup`, CLI); `pyproject.toml` installs
+  `solve_with_retry`, `solve_url`, `warmup`, CLI); `setup.cfg` installs
   `solver/` inside it as `captcha_solver.engine`
 - `solver/` — renderers, models, decode, pipeline, `api.py`
 - `train_securimage.py`, `train_gst.py`, `train_mca.py`, `train_epfo.py`,

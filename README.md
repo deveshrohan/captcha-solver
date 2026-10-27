@@ -21,7 +21,8 @@ Local, synthetic-trained captcha readers. `solve.py` auto-routes by image size
 | epfo | 150×50 | 5 alnum, gradient background | background subtraction → sprite-exact synth → CRNN+CTC | **100% exact (44/44)** |
 | kaveri | 200×60 | 6 uppercase-alnum, lines under text | exact ink mask → sprite cover, **no model** | **210/210 exact and unique** |
 | udyam | 225×80 | 6 uppercase-alnum, lines over text | luminance ink mask → template cover, **no model** | **36/36 exact**, margin > 0 on 2520/2520 glyphs |
-| itat | 150×42 | 6 mixed-case alnum, blue lines over text | darkness projection → CRNN+CTC, case-insensitive + augmented real fine-tune | 36.7% exact / 85.0% char (11/30), ~84% within 4 fetches |
+| itat | 150×42 | 6 mixed-case alnum, blue lines over text (ITAT's format **before Oct 2026**) | darkness projection → CRNN+CTC, case-insensitive + augmented real fine-tune | 36.7% exact / 85.0% char (11/30), ~84% within 4 fetches |
+| itat2 | 150×38 | 6 of 1-9 + A-Z without `O`, per-glyph face/tilt, dense blue lines (ITAT's format **since Oct 2026**) | darkness projection → CRNN+CTC, 11-face synthetic pretrain + real fine-tune | **90.0% exact (27/30), 97.2% char**; 10/10 within 3 fetches |
 | ngt | 120×40 | 6 lowercase-alnum, pastel speckle under text | exact black mask → fixed-grid glyph lookup, **no model** | **40/40 exact** held-out, 239/239 exact cover |
 | bharatkosh | 150×40 | 6 mixed-case alnum, per-glyph face/size/rotation, two fixed bars | blinded bar rows → CRNN+CTC, **vote across `New=0` re-renders**, label-free fine-tune | **83.3% exact (20/24), 97.2% char** voted over 5 renders; 87.5% case-folded; 82.5% from one render |
 | hrmut | 60×20 | 6 white mixed-case alnum on green | fixed-font glyph cover, **no model** | **86.7% exact (26/30)**; confidence-gated ≤3-image replay **10/10** |
@@ -1192,6 +1193,8 @@ before fetching again. The GST captcha behaves the same way.
   `finetune_bharatkosh.py`
 - High Courts: `download_hc.py`, `finalize_hc_labels.py`, `mkglyphs_gujhc.py`,
   `mkglyphs_madhc.py`, `train_calhc.py`, `eval_hc.py` (see the section below)
+- ITAT's 2026 format: `train_itat2.py`, `finetune_itat2.py` (labels pinned by
+  `finalize_hc_labels.py itat2`, scored by `eval_hc.py itat2`)
 - `mkglyphs_udyam.py`, `mkglyphs_ngt.py` — rebuild the Udyam / NGT glyph
   libraries from a corpus (Kaveri's equivalent lives in
   `solver.kaveri.extract_sprites`)
@@ -1345,3 +1348,47 @@ gate, and the caller should then fetch a new captcha on the same session.
 python3 eval_hc.py gujhc            # labelled test leg + label-free leg
 python3 selfimprove.py check --kinds gujhc madhc calhc karhc
 ```
+
+
+## ITAT's October 2026 format (`itat2`)
+
+ITAT re-tuned its captcha in October 2026. `itat.gov.in/captcha/show` now
+serves **150×38** instead of 150×42. `identify` routes the new size to
+`itat2`. The old `itat` reader still handles 150×42 in case the old format
+comes back. The strict size check is how the change was caught: the package
+raised `UnsupportedCaptcha` instead of returning confident nonsense.
+
+Same family as before: CodeIgniter/GD, near-black glyphs each rotated on its
+own, and light-blue lines and speckle drawn over the text, so the same darkness
+projection separates the ink. Nearly every measurement moved, though. Glyphs
+are about 21 px tall (was 28.6), there is half the ink (197 px vs 421), ink
+columns cover 43% of the word span (was 67%), and line pixels cover 54% of the
+frame. `solver/itat2.py` re-tunes the renderer to those numbers, measured on
+100 real images, and picks a face per glyph from 11 bundled fonts, since the
+real faces are unidentified and vary glyph to glyph.
+
+Labels: 192 images had two blind passes plus a third-reader adjudication of
+the 50 disputes. **14 were dropped.** Two were unreadable. Twelve hinged on a
+flat-topped 3 vs 5, which this generator draws almost identically: the
+adjudicator's rule for them conflicted with a 5 both labellers agreed on, so
+none of those calls was trusted. The census (852 agreed characters) never shows
+`O` or `0`, so the charset is the other 34. Unlike the old format, it includes
+`1`, `I` and `L`.
+
+Training: 13 synthetic epochs read real images at only 73% char, mostly
+systematic font misses (the "dagger" `I`→`1`, the spurred `G`→`Q`, `J`→`1`).
+A 30-epoch fine-tune on 128 real train labels, with jittered copies mixed with
+fresh synthetic and the epoch chosen on 20 validation images, took that to the
+held-out **27/30 exact, 175/180 characters**.
+
+**Confidence is weak here; use `submit`.** On test, all three wrong reads
+scored below the 0.90 gate (27/27 accepted were right). On validation, 3 of 19
+accepted reads were wrong at 0.91–0.99. Across both splits about 93% of
+accepted reads are correct. The retry that fixes the rest is the portal
+rejecting the answer, so call `solve_with_retry(fetch, submit)`.
+
+```bash
+python3 train_itat2.py 13 && python3 finetune_itat2.py 30
+python3 eval_hc.py itat2
+```
+

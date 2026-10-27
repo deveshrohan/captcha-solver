@@ -64,8 +64,13 @@ def main():
     delay = float(os.environ.get("ITAT_DELAY", "0.3"))
     os.makedirs(outdir, exist_ok=True)
 
+    # continue after the highest existing number: restarting at t0000 would
+    # overwrite (labelled) images from an earlier run
+    import glob
+    done = [int(os.path.basename(p)[1:5]) for p in glob.glob(os.path.join(outdir, "t[0-9][0-9][0-9][0-9].png"))]
+    first = max(done) + 1 if done else 0
     got = miss = 0
-    for i in range(n):
+    for i in range(first, first + n):
         png = fetch()
         if png is None:                       # transient error / rate limiting
             miss += 1

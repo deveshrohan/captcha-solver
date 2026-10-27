@@ -26,7 +26,7 @@ import numpy as np
 from solver.api import GATES, solve_bytes, solve_with_retry
 
 RAW = {"gujhc": "gujhc_raw/*.png", "madhc": "madhc_raw/*.png", "calhc": "calhc_raw/*.jpg",
-       "karhc": "karhc_raw/*.jpg"}
+       "karhc": "karhc_raw/*.jpg", "itat2": "itat2_raw/*.png"}
 
 
 def evaluate(kind, part="test", label_free=True):

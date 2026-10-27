@@ -10,6 +10,7 @@
            apart by content: gstat's ink is #333 and it never emits a pure-black
            pixel, while NGT's text is pure black. See solver/api._route_120x40.
   120x60  -> Madras High Court       (securimage digits, additive -log cover, no model)
+  150x38  -> ITAT portal, since Oct 2026 (darkness projection -> CRNN + CTC)
   150x42  -> ITAT portal             (darkness projection -> CRNN + CTC, case-insensitive)
   150x50  -> EPFO portal             (exact background subtraction -> CRNN + CTC)
   182x50  -> GST portal              (CRNN + CTC, RGB, length-6 beam)

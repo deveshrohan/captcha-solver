@@ -15,7 +15,7 @@ from .core import (KINDS, CaptchaError, CaptchaUnsolved, Result,
                    UnsupportedCaptcha, identify, solve, solve_url,
                    solve_with_retry, warmup)
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __all__ = ["KINDS", "CaptchaError", "CaptchaUnsolved", "Result",
            "UnsupportedCaptcha", "identify", "solve", "solve_url",
            "solve_with_retry", "warmup", "__version__"]

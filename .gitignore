@@ -9,6 +9,7 @@
 !solver/itat_model.pt
 !solver/bharatkosh_model.pt
 !solver/calhc_model.pt
+!solver/itat2_model.pt
 
 # Scraped captcha images and evaluation data — NOT distributed (they target live
 # third-party endpoints). Regenerate synthetic data with the renderer instead.
@@ -21,6 +22,7 @@ epfo_raw/
 kaveri_raw/
 udyam_raw/
 itat_raw/
+itat2_raw/
 ngt_raw/
 bharatkosh_raw/
 samples/

@@ -94,8 +94,8 @@ told apart by image size, plus a content test for the one shared size
 (120×40: gstat vs NGT). An unknown size raises `cs.UnsupportedCaptcha` and is
 never guessed.
 
-securimage (eCourts), gstat, ngt, gst, mca, epfo, kaveri, udyam, itat,
-bharatkosh, hrmut, mhigr, gujhc / madhc / calhc / karhc (Gujarat, Madras,
+securimage (eCourts), gstat, ngt, gst, mca, epfo, kaveri, udyam, itat
+(before Oct 2026) / itat2 (ITAT since Oct 2026), bharatkosh, hrmut, mhigr, gujhc / madhc / calhc / karhc (Gujarat, Madras,
 Calcutta and Karnataka High Courts).
 
 Endpoint notes that bite: Gujarat HC's `CaptchaServlet` needs `?ct=S` (without

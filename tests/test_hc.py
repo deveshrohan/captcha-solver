@@ -176,9 +176,37 @@ class TestKarnataka(unittest.TestCase):
             self.assertEqual(["".join(str(int(v)) for v in row) for row in g], ref[d])
 
 
+class TestItat2(unittest.TestCase):
+    """ITAT's format since October 2026 (150x38); the old 150x42 stays `itat`."""
+
+    def test_routes_by_size_and_keeps_the_old_format(self):
+        from solver.api import _SIZES
+        self.assertEqual(_SIZES[(150, 38)], "itat2")
+        self.assertEqual(_SIZES[(150, 42)], "itat")
+
+    def test_charset_matches_the_census(self):
+        from solver import itat2 as T2
+        self.assertEqual(T2.N_CLASSES, 34)
+        self.assertNotIn("O", T2.CHARSET)
+        self.assertNotIn("0", T2.CHARSET)
+        for c in "1IL":                      # back in, unlike the old format
+            self.assertIn(c, T2.CHARSET)
+
+    def test_model_reads_its_own_renderer(self):
+        from solver import itat2 as T2
+        rng = np.random.default_rng(99)
+        words = [T2.random_label(rng) for _ in range(20)]
+        hits = 0
+        for w in words:
+            text, _, kind = solve_bytes(png(np.asarray(T2.make_rgb(w, rng))))
+            self.assertEqual(kind, "itat2")
+            hits += text == w
+        self.assertGreaterEqual(hits, 14)
+
+
 class TestProvenance(unittest.TestCase):
     def test_splits_are_pinned_and_disjoint(self):
-        for kind in ("gujhc", "madhc", "calhc", "karhc"):
+        for kind in ("gujhc", "madhc", "calhc", "karhc", "itat2"):
             split = json.loads((ROOT / (kind + "_split.json")).read_text())
             self.assertGreaterEqual(len(split["test"]), 30)
             held = set(split["test"]) | set(split["validation"])
@@ -193,7 +221,7 @@ class TestProvenance(unittest.TestCase):
             self.assertEqual(meta["train_images"], len(split["train"]))
 
     def test_warmup_new_kinds(self):
-        warmup(securimage=False, gujhc=True, madhc=True, calhc=True, karhc=True)
+        warmup(securimage=False, gujhc=True, madhc=True, calhc=True, karhc=True, itat2=True)
 
 
 class TestDownloader(unittest.TestCase):

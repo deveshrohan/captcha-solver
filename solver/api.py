@@ -30,6 +30,7 @@ from . import bharatkosh as BK
 from . import epfo as E
 from . import gst as G
 from . import itat as T
+from . import itat2 as T2
 from . import kaveri as K
 from . import mca as M
 from . import ngt as N
@@ -52,6 +53,7 @@ _GST_MODEL = _os.path.join(_HERE, "gst_model.pt")
 _MCA_MODEL = _os.path.join(_HERE, "mca_model.pt")
 _EPFO_MODEL = _os.path.join(_HERE, "epfo_model.pt")
 _ITAT_MODEL = _os.path.join(_HERE, "itat_model.pt")
+_ITAT2_MODEL = _os.path.join(_HERE, "itat2_model.pt")
 _BHARATKOSH_MODEL = _os.path.join(_HERE, "bharatkosh_model.pt")
 _CALHC_MODEL = _os.path.join(_HERE, "calhc_model.pt")
 
@@ -62,6 +64,7 @@ _gst = None
 _mca = None
 _epfo = None
 _itat = None
+_itat2 = None
 _bharatkosh = None
 _calhc = None
 
@@ -93,7 +96,8 @@ _SIZES = {
     (150, 50): "epfo",
     (200, 60): "kaveri",
     (225, 80): "udyam",
-    (150, 42): "itat",
+    (150, 42): "itat",                 # ITAT before Oct 2026
+    (150, 38): "itat2",                # ITAT since Oct 2026
     (150, 40): "bharatkosh",           # ITAT is 150x42 -- no collision
     (200, 50): "gujhc",                # Gujarat HC (MCA 200x80, Kaveri 200x60)
     (120, 60): "madhc",                # Madras HC
@@ -114,6 +118,7 @@ GATES = {
     "mca": 0.90,
     "epfo": 0.90,
     "itat": 0.90,
+    "itat2": 0.90,
     "bharatkosh": 0.90,
     "kaveri": 0.99,          # 1.0 whenever an exact sprite cover exists
     "udyam": 0.85,           # real 0.87-0.99; changed fonts score <= 0.75
@@ -233,6 +238,18 @@ def _load_itat():
     return _itat
 
 
+def _load_itat2():
+    global _itat2
+    if _itat2 is None:
+        with _lock:
+            if _itat2 is None:
+                m = T2.Itat2CRNN()
+                m.load_state_dict(torch.load(_ITAT2_MODEL, map_location="cpu"))
+                m.eval()
+                _itat2 = m
+    return _itat2
+
+
 def _load_bharatkosh():
     global _bharatkosh
     if _bharatkosh is None:
@@ -259,7 +276,7 @@ def _load_calhc():
 
 def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False,
            kaveri=False, udyam=False, itat=False, ngt=False, bharatkosh=False, hrmut=False, mhigr=False,
-           gujhc=False, madhc=False, calhc=False, karhc=False):
+           gujhc=False, madhc=False, calhc=False, karhc=False, itat2=False):
     """Pre-load models at scraper startup so the first live solve isn't slow.
     Also runs one dummy forward to trigger lazy CUDA/oneDNN init. Call once.
 
@@ -288,6 +305,10 @@ def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False,
         m = _load_itat()
         with torch.no_grad():
             m(torch.zeros(1, 1, T.IN_H, T.IN_W))
+    if itat2:
+        m = _load_itat2()
+        with torch.no_grad():
+            m(torch.zeros(1, 1, T2.IN_H, T2.IN_W))
     if bharatkosh:
         m = _load_bharatkosh()
         with torch.no_grad():
@@ -402,6 +423,18 @@ def solve_itat(image):
     pil = _to_pil_rgb(image)
     arr = T.load_real(pil)[None]
     text, conf = T.predict(_load_itat(), arr, "cpu")
+    return text[0], float(conf[0])
+
+
+def solve_itat2(image):
+    """Solve an ITAT captcha in the format served since October 2026 (150x38,
+    6 chars from 1-9 and A-Z without O). Returns (text, confidence).
+
+    confidence is the CTC beam's geometric-mean per-character probability --
+    not accuracy, so pair it with submit feedback (see README)."""
+    pil = _to_pil_rgb(image)
+    arr = T2.load_real(pil)[None]
+    text, conf = T2.predict(_load_itat2(), arr, "cpu")
     return text[0], float(conf[0])
 
 
@@ -580,6 +613,8 @@ def solve_bytes(image, kind=None):
         text, conf = solve_epfo(pil)
     elif kind == "itat":
         text, conf = solve_itat(pil)
+    elif kind == "itat2":
+        text, conf = solve_itat2(pil)
     elif kind == "bharatkosh":
         text, conf = solve_bharatkosh(pil)
     elif kind == "kaveri":

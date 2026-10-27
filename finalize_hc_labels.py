@@ -15,9 +15,11 @@ import json
 import random
 from pathlib import Path
 
-LENGTH = {"gujhc": 5, "madhc": 6, "calhc": 6, "karhc": 6}
+LENGTH = {"gujhc": 5, "madhc": 6, "calhc": 6, "karhc": 6, "itat2": 6}
 SEED = 20261027
 N_TEST, N_VAL = 30, 10
+# A CRNN's epoch choice needs more validation than a cover reader's gate does.
+N_VAL_FOR = {"itat2": 20}
 
 
 def main(kind):
@@ -50,11 +52,12 @@ def main(kind):
             raise ValueError("a pinned eval image lost its label")
         test, val = old["test"], old["validation"]
     else:
-        if len(paths) < N_TEST + N_VAL + 10:
-            raise ValueError("need >= %d readable images" % (N_TEST + N_VAL + 10))
+        n_val = N_VAL_FOR.get(kind, N_VAL)
+        if len(paths) < N_TEST + n_val + 10:
+            raise ValueError("need >= %d readable images" % (N_TEST + n_val + 10))
         shuffled = paths[:]
         random.Random(SEED).shuffle(shuffled)
-        test, val = sorted(shuffled[:N_TEST]), sorted(shuffled[N_TEST:N_TEST + N_VAL])
+        test, val = sorted(shuffled[:N_TEST]), sorted(shuffled[N_TEST:N_TEST + n_val])
     held = set(test) | set(val)
     train = [p for p in paths if p not in held]
     split = {"seed": SEED, "test": test, "validation": val, "train": train,

@@ -1,0 +1,202 @@
+{
+ "itat2_raw/t0001.png": {
+  "final": "BFK1GR",
+  "why": "pos4 is 1: short flag droops ~35deg down-left from the stem top, no flat bar extending left as in this set's 7s"
+ },
+ "itat2_raw/t0008.png": {
+  "final": "G6ML27",
+  "why": "pos5 is 2: narrow, rounded right shoulder, top-left end hooks down"
+ },
+ "itat2_raw/t0014.png": {
+  "final": null,
+  "why": "flat-topped 3 vs 5: settled only by a contested rule (an agreed '5' in t0037 has the same shape), so dropped rather than trusted"
+ },
+ "itat2_raw/t0015.png": {
+  "final": "PDJKSS",
+  "why": "pos4 is K: full-height stem with serif, faint arm up-right plus a diagonal leg down-right (Y would have no lower leg)"
+ },
+ "itat2_raw/t0016.png": {
+  "final": null,
+  "why": "flat-topped 3 vs 5: settled only by a contested rule (an agreed '5' in t0037 has the same shape), so dropped rather than trusted"
+ },
+ "itat2_raw/t0022.png": {
+  "final": "2LA8RH",
+  "why": "pos1 is 2: 9px wide like this set's 2s (Zs are 12-14px), right shoulder bulges out before the diagonal, left end of top droops"
+ },
+ "itat2_raw/t0023.png": {
+  "final": "7NIQEX",
+  "why": "pos3 is the dagger I (top crossbar both sides + foot); pos4 is Q: closed ring with a tail running under/out to lower right"
+ },
+ "itat2_raw/t0031.png": {
+  "final": null,
+  "why": "flat-topped 3 vs 5: settled only by a contested rule (an agreed '5' in t0037 has the same shape), so dropped rather than trusted"
+ },
+ "itat2_raw/t0033.png": {
+  "final": "6QJ6ZL",
+  "why": "pos4 is 6: tall stroke hooks from top-right down the left and branches into a bottom bowl (bowl partly erased)"
+ },
+ "itat2_raw/t0037.png": {
+  "final": null,
+  "why": "both labellers read position 4 as 5, but it has the flat-topped 3 shape; dropped as unresolvable"
+ },
+ "itat2_raw/t0039.png": {
+  "final": "I4F6SH",
+  "why": "pos2 is 4: closed triangle, crossbar extends right past the stem, left side ends at the crossbar"
+ },
+ "itat2_raw/t0043.png": {
+  "final": "F6EJ4E",
+  "why": "pos5 is 4: closed triangle, crossbar extends right past the stem, left side ends at the crossbar"
+ },
+ "itat2_raw/t0044.png": {
+  "final": "R12JF6",
+  "why": "pos2 is 1: wedge top tapering to an apex with flag tip down-left (no flat 7 bar); pos3 is 2: arched top with black ball terminal and faint base dash"
+ },
+ "itat2_raw/t0048.png": {
+  "final": null,
+  "why": "flat-topped 3 vs 5: settled only by a contested rule (an agreed '5' in t0037 has the same shape), so dropped rather than trusted"
+ },
+ "itat2_raw/t0054.png": {
+  "final": "TC2EXT",
+  "why": "pos3 is 2: short arched top whose left end dips, rounded right shoulder, narrow"
+ },
+ "itat2_raw/t0056.png": {
+  "final": null,
+  "why": "flat-topped 3 vs 5: settled only by a contested rule (an agreed '5' in t0037 has the same shape), so dropped rather than trusted"
+ },
+ "itat2_raw/t0059.png": {
+  "final": null,
+  "why": "flat-topped 3 vs 5: settled only by a contested rule (an agreed '5' in t0037 has the same shape), so dropped rather than trusted"
+ },
+ "itat2_raw/t0060.png": {
+  "final": "HW9VG6",
+  "why": "pos3 is 9: arched top closing into a loop, right side descends and curls left into a tail (not A legs)"
+ },
+ "itat2_raw/t0061.png": {
+  "final": "PV8NLS",
+  "why": "pos3 is 8: right side of upper loop present at x70 y20-24 (separate from the N), waist crossing to lower loop"
+ },
+ "itat2_raw/t0070.png": {
+  "final": "XYRQ7T",
+  "why": "pos3 is R: dashes at x60-62 form a bowl right side closing back to the stem at y24, then a leg"
+ },
+ "itat2_raw/t0072.png": {
+  "final": "14RSCR",
+  "why": "pos1 is 1: heavy triangular flag top with a single stem; no left leg or crossbar for A"
+ },
+ "itat2_raw/t0073.png": {
+  "final": null,
+  "why": "pos6 heavily eroded and overlapped by the W: only an arc top, a near-vertical lower stroke and a faint base remain; 2 vs Z/7 not decidable"
+ },
+ "itat2_raw/t0075.png": {
+  "final": "BBSIG7",
+  "why": "G: upper-right of bowl open; right stroke starts at mid-height and drops vertically as a spur below the baseline"
+ },
+ "itat2_raw/t0079.png": {
+  "final": "AZ22W4",
+  "why": "pos4 is 2: arched top (left end lower than apex), narrow 8-9px like the other 2s"
+ },
+ "itat2_raw/t0082.png": {
+  "final": "RVNLHS",
+  "why": "pos3 is N: left stem, diagonal, slanted right stem; the third vertical at x74-76 is the L's stem joining its foot"
+ },
+ "itat2_raw/t0083.png": {
+  "final": "QBMV5G",
+  "why": "pos2 is B: straight vertical left stem x34-37 with square corners, no waist"
+ },
+ "itat2_raw/t0091.png": {
+  "final": "4JVRFH",
+  "why": "pos1 is 4: closed triangle, crossbar extends right past the stem, left side ends at y26 while the stem runs to y32"
+ },
+ "itat2_raw/t0095.png": {
+  "final": "86Q65C",
+  "why": "pos2 is 6: top hook curving down the left into a closed bottom bowl; pos3 is Q: closed ring with a tail exiting lower-right to x69"
+ },
+ "itat2_raw/t0101.png": {
+  "final": "UCAUDI",
+  "why": "pos3 is A rotated ccw: vertical left leg, apex top-left, right leg diagonal to lower right, crossbar; nothing up-right for K"
+ },
+ "itat2_raw/t0112.png": {
+  "final": "FH17IZ",
+  "why": "pos4 is 7: stem meets the sloped bar at its right end (overhang only stroke width), stem strongly diagonal"
+ },
+ "itat2_raw/t0113.png": {
+  "final": "X1MHVN",
+  "why": "pos2 is 1: flag goes down-left from the stem top; nothing to the right of the stem, so not T"
+ },
+ "itat2_raw/t0114.png": {
+  "final": null,
+  "why": "pos3 top is partly hidden under the T; a straight rotated Z bar vs a ball-terminal 2 top cannot be told apart and the 10-12px width falls between this set's 2s and Zs"
+ },
+ "itat2_raw/t0117.png": {
+  "final": "RTGM4U",
+  "why": "G: upper-right of bowl open; right stroke starts at mid-height and drops vertically as a spur below the baseline"
+ },
+ "itat2_raw/t0123.png": {
+  "final": "UAWURY",
+  "why": "pos4 is U: heavy top-left serif, thin right side, no top bar joining left and right as a D needs"
+ },
+ "itat2_raw/t0126.png": {
+  "final": "JJV8PI",
+  "why": "pos4 is 8: upper loop right side shows ink at x84-85 y15/y18/y22 between opaque line rows, so the top is closed"
+ },
+ "itat2_raw/t0138.png": {
+  "final": null,
+  "why": "flat-topped 3 vs 5: settled only by a contested rule (an agreed '5' in t0037 has the same shape), so dropped rather than trusted"
+ },
+ "itat2_raw/t0139.png": {
+  "final": "ZQS5GG",
+  "why": "pos5 is G: upper-right of bowl open; right stroke starts at mid-height and drops vertically as a spur below the baseline"
+ },
+ "itat2_raw/t0140.png": {
+  "final": null,
+  "why": "flat-topped 3 vs 5: settled only by a contested rule (an agreed '5' in t0037 has the same shape), so dropped rather than trusted"
+ },
+ "itat2_raw/t0144.png": {
+  "final": "6GG38U",
+  "why": "pos2 is G: upper-right of bowl open; right stroke starts at mid-height and drops vertically as a spur below the baseline"
+ },
+ "itat2_raw/t0145.png": {
+  "final": "WSHL3G",
+  "why": "pos6 is G: upper-right of bowl open; right stroke starts at mid-height and drops vertically as a spur below the baseline"
+ },
+ "itat2_raw/t0146.png": {
+  "final": "N5IQNV",
+  "why": "pos4 is Q: tail starts inside the bowl centre and runs diagonally far out to lower right like the agreed Qs"
+ },
+ "itat2_raw/t0147.png": {
+  "final": "8MNEJ7",
+  "why": "pos6 is 7: stem joins the bar at its right end (x119 of 110-121), bar extends only left"
+ },
+ "itat2_raw/t0149.png": {
+  "final": "81NSKF",
+  "why": "pos1 is 8: lower-left bulges 2-3px left of upper-left with rounded corners while the right side stays put; not a straight B stem"
+ },
+ "itat2_raw/t0154.png": {
+  "final": "UN276P",
+  "why": "pos3 is 2: top arches (apex mid, both ends lower) with ball terminal, narrow"
+ },
+ "itat2_raw/t0159.png": {
+  "final": "8KGYTR",
+  "why": "pos5 is T: neutral-grey antialiased bar continues 7px right of the centred stem (x100-107)"
+ },
+ "itat2_raw/t0163.png": {
+  "final": "X5E3N7",
+  "why": "pos6 is 7: stem at x118 is the right end of the bar, no ink right of it; left part of the bar is the N's stem top"
+ },
+ "itat2_raw/t0174.png": {
+  "final": "PGTY3R",
+  "why": "pos2 is G: upper-right of bowl open; right stroke starts at mid-height and drops vertically as a spur below the baseline"
+ },
+ "itat2_raw/t0183.png": {
+  "final": null,
+  "why": "flat-topped 3 vs 5: settled only by a contested rule (an agreed '5' in t0037 has the same shape), so dropped rather than trusted"
+ },
+ "itat2_raw/t0184.png": {
+  "final": null,
+  "why": "flat-topped 3 vs 5: settled only by a contested rule (an agreed '5' in t0037 has the same shape), so dropped rather than trusted"
+ },
+ "itat2_raw/t0185.png": {
+  "final": null,
+  "why": "flat-topped 3 vs 5: settled only by a contested rule (an agreed '5' in t0037 has the same shape), so dropped rather than trusted"
+ }
+}

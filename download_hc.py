@@ -26,6 +26,9 @@ Endpoint behaviour (measured 2026-10-27, not assumed):
   The server speaks TLS 1.3 ONLY: a Python linked against LibreSSL 2.8 (the
   macOS system python3) fails with TLSV1_ALERT_PROTOCOL_VERSION, so this
   kind is fetched through curl.
+* aphc   `digi-courts.aphc.ap.gov.in/csis_ap/loadCaptcha?date=<ms>`
+  Sets CSIS_ID. A 110x33 JPEG reading e.g. `77plus8`; the answer is the
+  sum. (Endpoint taken from the litigation scraper's aphc_site.py.)
 
 How each answer is submitted is deliberately not documented here.
 """
@@ -55,6 +58,9 @@ KINDS = {
                                   string.ascii_letters + string.digits, k=8))),
     "karhc": dict(ext="jpg", magic=b"\xff\xd8\xff", curl=True,
                   url=lambda: "https://judiciary.karnataka.gov.in/captcha.php"),
+    "aphc":  dict(ext="jpg", magic=b"\xff\xd8\xff",
+                  url=lambda: "https://digi-courts.aphc.ap.gov.in/csis_ap/"
+                              "loadCaptcha?date=%d" % (time.time() * 1000)),
 }
 
 

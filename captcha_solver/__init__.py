@@ -11,11 +11,11 @@
 
 Everything runs locally on CPU; no image ever leaves the process.
 """
-from .core import (KINDS, CaptchaError, CaptchaUnsolved, Result,
-                   UnsupportedCaptcha, identify, solve, solve_url,
+from .core import (KINDS, CaptchaError, CaptchaUnsolved, MissingDependency,
+                   Result, UnsupportedCaptcha, identify, solve, solve_url,
                    solve_with_retry, warmup)
 
-__version__ = "0.2.0"
-__all__ = ["KINDS", "CaptchaError", "CaptchaUnsolved", "Result",
+__version__ = "0.3.0"
+__all__ = ["KINDS", "CaptchaError", "CaptchaUnsolved", "MissingDependency", "Result",
            "UnsupportedCaptcha", "identify", "solve", "solve_url",
            "solve_with_retry", "warmup", "__version__"]

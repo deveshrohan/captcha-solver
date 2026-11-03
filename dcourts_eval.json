@@ -1,0 +1,1471 @@
+{
+ "kind": "dcourts",
+ "split": "test",
+ "codes": 40,
+ "renders": 160,
+ "gate": 0.5,
+ "gate_from": "val split, voted over 3 renders",
+ "single_render_exact": 151,
+ "single_render_char_accuracy": 0.9888,
+ "voted": {
+  "2": {
+   "exact": 39,
+   "accepted": 39,
+   "accepted_correct": 38
+  },
+  "3": {
+   "exact": 39,
+   "accepted": 40,
+   "accepted_correct": 39
+  },
+  "4": {
+   "exact": 39,
+   "accepted": 40,
+   "accepted_correct": 39
+  }
+ },
+ "single_rows": [
+  {
+   "path": "dcourts_raw/bhopal_0aef189303_0.png",
+   "label": "IDLMH",
+   "prediction": "IDLMH",
+   "confidence": 0.9974,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/bhopal_0aef189303_1.png",
+   "label": "IDLMH",
+   "prediction": "IDLMH",
+   "confidence": 0.9991,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/bhopal_0aef189303_2.png",
+   "label": "IDLMH",
+   "prediction": "IDLMH",
+   "confidence": 0.9957,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/bhopal_0aef189303_3.png",
+   "label": "IDLMH",
+   "prediction": "IDLMH",
+   "confidence": 0.9771,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/bhopal_2d00f42254_0.png",
+   "label": "Z7XLJ",
+   "prediction": "ZTXLJ",
+   "confidence": 0.9906,
+   "correct": false
+  },
+  {
+   "path": "dcourts_raw/bhopal_2d00f42254_1.png",
+   "label": "Z7XLJ",
+   "prediction": "Z7XLJ",
+   "confidence": 0.9988,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/bhopal_2d00f42254_2.png",
+   "label": "Z7XLJ",
+   "prediction": "Z7XLJ",
+   "confidence": 0.9979,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/bhopal_2d00f42254_3.png",
+   "label": "Z7XLJ",
+   "prediction": "Z7XLJ",
+   "confidence": 0.7799,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/bhopal_681ba8d98c_0.png",
+   "label": "3E2UK",
+   "prediction": "3E2UK",
+   "confidence": 0.9945,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/bhopal_681ba8d98c_1.png",
+   "label": "3E2UK",
+   "prediction": "3E2UK",
+   "confidence": 0.9949,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/bhopal_681ba8d98c_2.png",
+   "label": "3E2UK",
+   "prediction": "3E2UK",
+   "confidence": 0.9979,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/bhopal_681ba8d98c_3.png",
+   "label": "3E2UK",
+   "prediction": "3E2UK",
+   "confidence": 0.9962,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/bhopal_dab4258c3f_0.png",
+   "label": "JCVPT",
+   "prediction": "JCVPT",
+   "confidence": 0.999,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/bhopal_dab4258c3f_1.png",
+   "label": "JCVPT",
+   "prediction": "JCVPT",
+   "confidence": 0.9977,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/bhopal_dab4258c3f_2.png",
+   "label": "JCVPT",
+   "prediction": "JCVPT",
+   "confidence": 0.9982,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/bhopal_dab4258c3f_3.png",
+   "label": "JCVPT",
+   "prediction": "JCVPT",
+   "confidence": 0.9976,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_203c519ebf_0.png",
+   "label": "HFEUW",
+   "prediction": "HFEUW",
+   "confidence": 0.927,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_203c519ebf_1.png",
+   "label": "HFEUW",
+   "prediction": "HFEUW",
+   "confidence": 0.9936,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_203c519ebf_2.png",
+   "label": "HFEUW",
+   "prediction": "HFEUW",
+   "confidence": 0.99,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_203c519ebf_3.png",
+   "label": "HFEUW",
+   "prediction": "HFEUW",
+   "confidence": 0.9928,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_313f8c329c_0.png",
+   "label": "NAEHD",
+   "prediction": "NAEHD",
+   "confidence": 0.9972,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_313f8c329c_1.png",
+   "label": "NAEHD",
+   "prediction": "NAEHD",
+   "confidence": 0.9979,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_313f8c329c_2.png",
+   "label": "NAEHD",
+   "prediction": "NAEHD",
+   "confidence": 0.9986,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_313f8c329c_3.png",
+   "label": "NAEHD",
+   "prediction": "NAEHD",
+   "confidence": 0.9984,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_5a7053f774_0.png",
+   "label": "VBGTT",
+   "prediction": "VBGTT",
+   "confidence": 0.9964,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_5a7053f774_1.png",
+   "label": "VBGTT",
+   "prediction": "VBGTT",
+   "confidence": 0.9971,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_5a7053f774_2.png",
+   "label": "VBGTT",
+   "prediction": "VBGTT",
+   "confidence": 0.9981,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_5a7053f774_3.png",
+   "label": "VBGTT",
+   "prediction": "VBGTT",
+   "confidence": 0.9952,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_73aab54a5f_0.png",
+   "label": "XVZC0",
+   "prediction": "XVZC0",
+   "confidence": 0.996,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_73aab54a5f_1.png",
+   "label": "XVZC0",
+   "prediction": "XVZC0",
+   "confidence": 0.9935,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_73aab54a5f_2.png",
+   "label": "XVZC0",
+   "prediction": "XVZC0",
+   "confidence": 0.9967,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_73aab54a5f_3.png",
+   "label": "XVZC0",
+   "prediction": "XVZC0",
+   "confidence": 0.9964,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_83bbac098c_0.png",
+   "label": "JBANB",
+   "prediction": "JBANB",
+   "confidence": 0.999,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_83bbac098c_1.png",
+   "label": "JBANB",
+   "prediction": "JBANB",
+   "confidence": 0.9991,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_83bbac098c_2.png",
+   "label": "JBANB",
+   "prediction": "JBANB",
+   "confidence": 0.9995,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_83bbac098c_3.png",
+   "label": "JBANB",
+   "prediction": "JBANB",
+   "confidence": 0.9992,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_a4fcd58590_0.png",
+   "label": "UPMAY",
+   "prediction": "UPMAY",
+   "confidence": 0.9991,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_a4fcd58590_1.png",
+   "label": "UPMAY",
+   "prediction": "UPMAY",
+   "confidence": 0.9989,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_a4fcd58590_2.png",
+   "label": "UPMAY",
+   "prediction": "UPMAY",
+   "confidence": 0.9965,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_a4fcd58590_3.png",
+   "label": "UPMAY",
+   "prediction": "UPMAY",
+   "confidence": 0.9975,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_e60971e310_0.png",
+   "label": "ZZEWM",
+   "prediction": "ZZEWM",
+   "confidence": 0.9988,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_e60971e310_1.png",
+   "label": "ZZEWM",
+   "prediction": "ZZEWM",
+   "confidence": 0.9985,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_e60971e310_2.png",
+   "label": "ZZEWM",
+   "prediction": "ZZEWM",
+   "confidence": 0.9983,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_e60971e310_3.png",
+   "label": "ZZEWM",
+   "prediction": "ZZEWM",
+   "confidence": 0.9998,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_f128b52efc_0.png",
+   "label": "OUJYG",
+   "prediction": "OUJYG",
+   "confidence": 0.9088,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_f128b52efc_1.png",
+   "label": "OUJYG",
+   "prediction": "OUJYG",
+   "confidence": 0.986,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_f128b52efc_2.png",
+   "label": "OUJYG",
+   "prediction": "0UJYG",
+   "confidence": 0.5429,
+   "correct": false
+  },
+  {
+   "path": "dcourts_raw/kota_f128b52efc_3.png",
+   "label": "OUJYG",
+   "prediction": "OUJYG",
+   "confidence": 0.8644,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_f2b5a76349_0.png",
+   "label": "MPXRP",
+   "prediction": "MPXRP",
+   "confidence": 0.997,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_f2b5a76349_1.png",
+   "label": "MPXRP",
+   "prediction": "MPXRP",
+   "confidence": 0.9988,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_f2b5a76349_2.png",
+   "label": "MPXRP",
+   "prediction": "MPXRP",
+   "confidence": 0.9989,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_f2b5a76349_3.png",
+   "label": "MPXRP",
+   "prediction": "MPXRP",
+   "confidence": 0.9992,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_f9739d43c2_0.png",
+   "label": "CTL06",
+   "prediction": "CTL06",
+   "confidence": 0.9949,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_f9739d43c2_1.png",
+   "label": "CTL06",
+   "prediction": "CTL06",
+   "confidence": 0.9967,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_f9739d43c2_2.png",
+   "label": "CTL06",
+   "prediction": "CTL06",
+   "confidence": 0.9942,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/kota_f9739d43c2_3.png",
+   "label": "CTL06",
+   "prediction": "CTL06",
+   "confidence": 0.997,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_0852e8e066_0.png",
+   "label": "4TAEF",
+   "prediction": "4TAEF",
+   "confidence": 0.9955,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_0852e8e066_1.png",
+   "label": "4TAEF",
+   "prediction": "4TAEF",
+   "confidence": 0.9957,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_0852e8e066_2.png",
+   "label": "4TAEF",
+   "prediction": "4TAEF",
+   "confidence": 0.9918,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_0852e8e066_3.png",
+   "label": "4TAEF",
+   "prediction": "4TAEF",
+   "confidence": 0.9965,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_12355487dd_0.png",
+   "label": "FWAJS",
+   "prediction": "FWAJS",
+   "confidence": 0.9969,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_12355487dd_1.png",
+   "label": "FWAJS",
+   "prediction": "FWAJS",
+   "confidence": 0.9961,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_12355487dd_2.png",
+   "label": "FWAJS",
+   "prediction": "FWAJS",
+   "confidence": 0.9973,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_12355487dd_3.png",
+   "label": "FWAJS",
+   "prediction": "FWAJS",
+   "confidence": 0.9966,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_195e83fe3c_0.png",
+   "label": "KTN1K",
+   "prediction": "KTN1K",
+   "confidence": 0.9891,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_195e83fe3c_1.png",
+   "label": "KTN1K",
+   "prediction": "KTN1K",
+   "confidence": 0.997,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_195e83fe3c_2.png",
+   "label": "KTN1K",
+   "prediction": "KTN1K",
+   "confidence": 0.9958,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_195e83fe3c_3.png",
+   "label": "KTN1K",
+   "prediction": "KTN1K",
+   "confidence": 0.9967,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_2722460f44_0.png",
+   "label": "6JUXT",
+   "prediction": "6JUXT",
+   "confidence": 0.9975,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_2722460f44_1.png",
+   "label": "6JUXT",
+   "prediction": "6JUXT",
+   "confidence": 0.9924,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_2722460f44_2.png",
+   "label": "6JUXT",
+   "prediction": "6JUXT",
+   "confidence": 0.9895,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_2722460f44_3.png",
+   "label": "6JUXT",
+   "prediction": "6JUXT",
+   "confidence": 0.9986,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_295e8229d7_0.png",
+   "label": "XPRJK",
+   "prediction": "XPRJK",
+   "confidence": 0.9609,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_295e8229d7_1.png",
+   "label": "XPRJK",
+   "prediction": "XPRJK",
+   "confidence": 0.9198,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_295e8229d7_2.png",
+   "label": "XPRJK",
+   "prediction": "XPRJK",
+   "confidence": 0.9777,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_295e8229d7_3.png",
+   "label": "XPRJK",
+   "prediction": "XPRJK",
+   "confidence": 0.9704,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_46cfddf68f_0.png",
+   "label": "EYV3R",
+   "prediction": "EYV3R",
+   "confidence": 0.9967,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_46cfddf68f_1.png",
+   "label": "EYV3R",
+   "prediction": "EYV3R",
+   "confidence": 0.9983,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_46cfddf68f_2.png",
+   "label": "EYV3R",
+   "prediction": "EYV3R",
+   "confidence": 0.9969,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_46cfddf68f_3.png",
+   "label": "EYV3R",
+   "prediction": "EYV3R",
+   "confidence": 0.9958,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_5113535728_0.png",
+   "label": "3ZZ2T",
+   "prediction": "3ZZ2T",
+   "confidence": 0.998,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_5113535728_1.png",
+   "label": "3ZZ2T",
+   "prediction": "3ZZ2T",
+   "confidence": 0.9985,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_5113535728_2.png",
+   "label": "3ZZ2T",
+   "prediction": "3ZZ2T",
+   "confidence": 0.9907,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_5113535728_3.png",
+   "label": "3ZZ2T",
+   "prediction": "3ZZ2T",
+   "confidence": 0.9991,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_58a18b0582_0.png",
+   "label": "HAURF",
+   "prediction": "HAURF",
+   "confidence": 0.9946,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_58a18b0582_1.png",
+   "label": "HAURF",
+   "prediction": "HAURF",
+   "confidence": 0.9727,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_58a18b0582_2.png",
+   "label": "HAURF",
+   "prediction": "HAURF",
+   "confidence": 0.9945,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_58a18b0582_3.png",
+   "label": "HAURF",
+   "prediction": "HAURF",
+   "confidence": 0.9885,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_646c48d238_0.png",
+   "label": "JKLB9",
+   "prediction": "JKLB9",
+   "confidence": 0.9975,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_646c48d238_1.png",
+   "label": "JKLB9",
+   "prediction": "JKLB9",
+   "confidence": 0.9961,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_646c48d238_2.png",
+   "label": "JKLB9",
+   "prediction": "JKLB9",
+   "confidence": 0.9959,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_646c48d238_3.png",
+   "label": "JKLB9",
+   "prediction": "JKLB9",
+   "confidence": 0.9899,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_7bcbdc288d_0.png",
+   "label": "HYSBH",
+   "prediction": "HYSBH",
+   "confidence": 0.9983,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_7bcbdc288d_1.png",
+   "label": "HYSBH",
+   "prediction": "HYSBH",
+   "confidence": 0.9988,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_7bcbdc288d_2.png",
+   "label": "HYSBH",
+   "prediction": "HYSBH",
+   "confidence": 0.9988,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_7bcbdc288d_3.png",
+   "label": "HYSBH",
+   "prediction": "HYSBH",
+   "confidence": 0.9971,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_aba60f4203_0.png",
+   "label": "CDBCH",
+   "prediction": "CDBCH",
+   "confidence": 0.9988,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_aba60f4203_1.png",
+   "label": "CDBCH",
+   "prediction": "CDBCH",
+   "confidence": 0.9989,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_aba60f4203_2.png",
+   "label": "CDBCH",
+   "prediction": "CDBOH",
+   "confidence": 0.9643,
+   "correct": false
+  },
+  {
+   "path": "dcourts_raw/lucknow_aba60f4203_3.png",
+   "label": "CDBCH",
+   "prediction": "CDBCH",
+   "confidence": 0.9992,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_cddfd02b59_0.png",
+   "label": "BXFGX",
+   "prediction": "BXFGX",
+   "confidence": 0.9987,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_cddfd02b59_1.png",
+   "label": "BXFGX",
+   "prediction": "BXFGX",
+   "confidence": 0.9988,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_cddfd02b59_2.png",
+   "label": "BXFGX",
+   "prediction": "BXFGX",
+   "confidence": 0.9983,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_cddfd02b59_3.png",
+   "label": "BXFGX",
+   "prediction": "BXFGX",
+   "confidence": 0.8718,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_d6074b6f97_0.png",
+   "label": "FEN22",
+   "prediction": "FEN22",
+   "confidence": 0.9986,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_d6074b6f97_1.png",
+   "label": "FEN22",
+   "prediction": "FEN22",
+   "confidence": 0.9987,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_d6074b6f97_2.png",
+   "label": "FEN22",
+   "prediction": "FEN22",
+   "confidence": 0.9988,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_d6074b6f97_3.png",
+   "label": "FEN22",
+   "prediction": "FEN22",
+   "confidence": 0.9989,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_f455544f3a_0.png",
+   "label": "XCTDY",
+   "prediction": "XCTDY",
+   "confidence": 0.9952,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_f455544f3a_1.png",
+   "label": "XCTDY",
+   "prediction": "XCTDY",
+   "confidence": 0.9977,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_f455544f3a_2.png",
+   "label": "XCTDY",
+   "prediction": "XCTDY",
+   "confidence": 0.9981,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_f455544f3a_3.png",
+   "label": "XCTDY",
+   "prediction": "XCTDY",
+   "confidence": 0.9254,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_fb170da7ec_0.png",
+   "label": "7IK8H",
+   "prediction": "7IK8H",
+   "confidence": 0.8095,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_fb170da7ec_1.png",
+   "label": "7IK8H",
+   "prediction": "7IK8H",
+   "confidence": 0.9957,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_fb170da7ec_2.png",
+   "label": "7IK8H",
+   "prediction": "7IK8H",
+   "confidence": 0.7326,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/lucknow_fb170da7ec_3.png",
+   "label": "7IK8H",
+   "prediction": "7IK8H",
+   "confidence": 0.995,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_0cc97231fe_0.png",
+   "label": "TOLLS",
+   "prediction": "TOLLS",
+   "confidence": 0.9925,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_0cc97231fe_1.png",
+   "label": "TOLLS",
+   "prediction": "TOLLS",
+   "confidence": 0.9956,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_0cc97231fe_2.png",
+   "label": "TOLLS",
+   "prediction": "TOLLS",
+   "confidence": 0.8595,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_0cc97231fe_3.png",
+   "label": "TOLLS",
+   "prediction": "TOLLS",
+   "confidence": 0.9886,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_1f42710396_0.png",
+   "label": "RB5ZV",
+   "prediction": "RB5ZV",
+   "confidence": 0.9972,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_1f42710396_1.png",
+   "label": "RB5ZV",
+   "prediction": "RB5ZV",
+   "confidence": 0.9986,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_1f42710396_2.png",
+   "label": "RB5ZV",
+   "prediction": "RB5ZV",
+   "confidence": 0.9978,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_1f42710396_3.png",
+   "label": "RB5ZV",
+   "prediction": "RB5ZV",
+   "confidence": 0.9937,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_32eb7bd28f_0.png",
+   "label": "XP2XR",
+   "prediction": "XP2XR",
+   "confidence": 0.9978,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_32eb7bd28f_1.png",
+   "label": "XP2XR",
+   "prediction": "XP2XR",
+   "confidence": 0.9986,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_32eb7bd28f_2.png",
+   "label": "XP2XR",
+   "prediction": "XP2XR",
+   "confidence": 0.9985,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_32eb7bd28f_3.png",
+   "label": "XP2XR",
+   "prediction": "XP2XR",
+   "confidence": 0.9965,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_3a5db75380_0.png",
+   "label": "FUTJE",
+   "prediction": "FUTJE",
+   "confidence": 0.9481,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_3a5db75380_1.png",
+   "label": "FUTJE",
+   "prediction": "FUTJE",
+   "confidence": 0.995,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_3a5db75380_2.png",
+   "label": "FUTJE",
+   "prediction": "FUTJE",
+   "confidence": 0.9942,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_3a5db75380_3.png",
+   "label": "FUTJE",
+   "prediction": "FUTJE",
+   "confidence": 0.9959,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_45afa94c74_0.png",
+   "label": "LEKCC",
+   "prediction": "LEKCC",
+   "confidence": 0.9993,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_45afa94c74_1.png",
+   "label": "LEKCC",
+   "prediction": "LEKCC",
+   "confidence": 0.9996,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_45afa94c74_2.png",
+   "label": "LEKCC",
+   "prediction": "LEKCC",
+   "confidence": 0.9994,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_45afa94c74_3.png",
+   "label": "LEKCC",
+   "prediction": "LEKCC",
+   "confidence": 0.9994,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_510159c16c_0.png",
+   "label": "FMYHL",
+   "prediction": "FMYHL",
+   "confidence": 0.9989,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_510159c16c_1.png",
+   "label": "FMYHL",
+   "prediction": "FMYHL",
+   "confidence": 0.9984,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_510159c16c_2.png",
+   "label": "FMYHL",
+   "prediction": "FMYHL",
+   "confidence": 0.9952,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_510159c16c_3.png",
+   "label": "FMYHL",
+   "prediction": "FMYHL",
+   "confidence": 0.9988,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_63f33ee1ce_0.png",
+   "label": "O8D8A",
+   "prediction": "O8DBA",
+   "confidence": 0.6167,
+   "correct": false
+  },
+  {
+   "path": "dcourts_raw/patna_63f33ee1ce_1.png",
+   "label": "O8D8A",
+   "prediction": "O8D8A",
+   "confidence": 0.9929,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_63f33ee1ce_2.png",
+   "label": "O8D8A",
+   "prediction": "O8D8A",
+   "confidence": 0.9079,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_63f33ee1ce_3.png",
+   "label": "O8D8A",
+   "prediction": "O8D8A",
+   "confidence": 0.9036,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_98a935066d_0.png",
+   "label": "U0S5V",
+   "prediction": "UOS5V",
+   "confidence": 0.5975,
+   "correct": false
+  },
+  {
+   "path": "dcourts_raw/patna_98a935066d_1.png",
+   "label": "U0S5V",
+   "prediction": "U0S5V",
+   "confidence": 0.9945,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_98a935066d_2.png",
+   "label": "U0S5V",
+   "prediction": "U0S5V",
+   "confidence": 0.9938,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_98a935066d_3.png",
+   "label": "U0S5V",
+   "prediction": "U055V",
+   "confidence": 0.8111,
+   "correct": false
+  },
+  {
+   "path": "dcourts_raw/patna_a80bad9987_0.png",
+   "label": "IPESK",
+   "prediction": "IPESK",
+   "confidence": 0.9979,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_a80bad9987_1.png",
+   "label": "IPESK",
+   "prediction": "IPESK",
+   "confidence": 0.998,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_a80bad9987_2.png",
+   "label": "IPESK",
+   "prediction": "IPESK",
+   "confidence": 0.9977,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_a80bad9987_3.png",
+   "label": "IPESK",
+   "prediction": "IPESK",
+   "confidence": 0.9607,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_f34227e1af_0.png",
+   "label": "GABJZ",
+   "prediction": "GABJZ",
+   "confidence": 0.9263,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_f34227e1af_1.png",
+   "label": "GABJZ",
+   "prediction": "9ABJZ",
+   "confidence": 0.9981,
+   "correct": false
+  },
+  {
+   "path": "dcourts_raw/patna_f34227e1af_2.png",
+   "label": "GABJZ",
+   "prediction": "9ABJZ",
+   "confidence": 0.9952,
+   "correct": false
+  },
+  {
+   "path": "dcourts_raw/patna_f34227e1af_3.png",
+   "label": "GABJZ",
+   "prediction": "9ABJZ",
+   "confidence": 0.9812,
+   "correct": false
+  },
+  {
+   "path": "dcourts_raw/patna_fe2b9fc8e5_0.png",
+   "label": "PVBPN",
+   "prediction": "PVBPN",
+   "confidence": 0.9978,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_fe2b9fc8e5_1.png",
+   "label": "PVBPN",
+   "prediction": "PVBPN",
+   "confidence": 0.9988,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_fe2b9fc8e5_2.png",
+   "label": "PVBPN",
+   "prediction": "PVBPN",
+   "confidence": 0.9988,
+   "correct": true
+  },
+  {
+   "path": "dcourts_raw/patna_fe2b9fc8e5_3.png",
+   "label": "PVBPN",
+   "prediction": "PVBPN",
+   "confidence": 0.9983,
+   "correct": true
+  }
+ ],
+ "voted_rows": [
+  {
+   "code": "bhopal_0aef189303",
+   "label": "IDLMH",
+   "prediction": "IDLMH",
+   "confidence": 0.9974,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "bhopal_2d00f42254",
+   "label": "Z7XLJ",
+   "prediction": "Z7XLJ",
+   "confidence": 0.6659,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "bhopal_681ba8d98c",
+   "label": "3E2UK",
+   "prediction": "3E2UK",
+   "confidence": 0.9958,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "bhopal_dab4258c3f",
+   "label": "JCVPT",
+   "prediction": "JCVPT",
+   "confidence": 0.9983,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "kota_203c519ebf",
+   "label": "HFEUW",
+   "prediction": "HFEUW",
+   "confidence": 0.9702,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "kota_313f8c329c",
+   "label": "NAEHD",
+   "prediction": "NAEHD",
+   "confidence": 0.9979,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "kota_5a7053f774",
+   "label": "VBGTT",
+   "prediction": "VBGTT",
+   "confidence": 0.9972,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "kota_73aab54a5f",
+   "label": "XVZC0",
+   "prediction": "XVZC0",
+   "confidence": 0.9954,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "kota_83bbac098c",
+   "label": "JBANB",
+   "prediction": "JBANB",
+   "confidence": 0.9992,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "kota_a4fcd58590",
+   "label": "UPMAY",
+   "prediction": "UPMAY",
+   "confidence": 0.9982,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "kota_e60971e310",
+   "label": "ZZEWM",
+   "prediction": "ZZEWM",
+   "confidence": 0.9985,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "kota_f128b52efc",
+   "label": "OUJYG",
+   "prediction": "OUJYG",
+   "confidence": 0.7832,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "kota_f2b5a76349",
+   "label": "MPXRP",
+   "prediction": "MPXRP",
+   "confidence": 0.9982,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "kota_f9739d43c2",
+   "label": "CTL06",
+   "prediction": "CTL06",
+   "confidence": 0.9953,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "lucknow_0852e8e066",
+   "label": "4TAEF",
+   "prediction": "4TAEF",
+   "confidence": 0.9943,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "lucknow_12355487dd",
+   "label": "FWAJS",
+   "prediction": "FWAJS",
+   "confidence": 0.9968,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "lucknow_195e83fe3c",
+   "label": "KTN1K",
+   "prediction": "KTN1K",
+   "confidence": 0.994,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "lucknow_2722460f44",
+   "label": "6JUXT",
+   "prediction": "6JUXT",
+   "confidence": 0.9931,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "lucknow_295e8229d7",
+   "label": "XPRJK",
+   "prediction": "XPRJK",
+   "confidence": 0.9528,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "lucknow_46cfddf68f",
+   "label": "EYV3R",
+   "prediction": "EYV3R",
+   "confidence": 0.9973,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "lucknow_5113535728",
+   "label": "3ZZ2T",
+   "prediction": "3ZZ2T",
+   "confidence": 0.9957,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "lucknow_58a18b0582",
+   "label": "HAURF",
+   "prediction": "HAURF",
+   "confidence": 0.9873,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "lucknow_646c48d238",
+   "label": "JKLB9",
+   "prediction": "JKLB9",
+   "confidence": 0.9965,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "lucknow_7bcbdc288d",
+   "label": "HYSBH",
+   "prediction": "HYSBH",
+   "confidence": 0.9986,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "lucknow_aba60f4203",
+   "label": "CDBCH",
+   "prediction": "CDBCH",
+   "confidence": 0.6741,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "lucknow_cddfd02b59",
+   "label": "BXFGX",
+   "prediction": "BXFGX",
+   "confidence": 0.9986,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "lucknow_d6074b6f97",
+   "label": "FEN22",
+   "prediction": "FEN22",
+   "confidence": 0.9987,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "lucknow_f455544f3a",
+   "label": "XCTDY",
+   "prediction": "XCTDY",
+   "confidence": 0.997,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "lucknow_fb170da7ec",
+   "label": "7IK8H",
+   "prediction": "7IK8H",
+   "confidence": 0.8459,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "patna_0cc97231fe",
+   "label": "TOLLS",
+   "prediction": "TOLLS",
+   "confidence": 0.9492,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "patna_1f42710396",
+   "label": "RB5ZV",
+   "prediction": "RB5ZV",
+   "confidence": 0.9979,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "patna_32eb7bd28f",
+   "label": "XP2XR",
+   "prediction": "XP2XR",
+   "confidence": 0.9983,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "patna_3a5db75380",
+   "label": "FUTJE",
+   "prediction": "FUTJE",
+   "confidence": 0.9791,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "patna_45afa94c74",
+   "label": "LEKCC",
+   "prediction": "LEKCC",
+   "confidence": 0.9995,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "patna_510159c16c",
+   "label": "FMYHL",
+   "prediction": "FMYHL",
+   "confidence": 0.9975,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "patna_63f33ee1ce",
+   "label": "O8D8A",
+   "prediction": "O8D8A",
+   "confidence": 0.754,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "patna_98a935066d",
+   "label": "U0S5V",
+   "prediction": "U0S5V",
+   "confidence": 0.7911,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "patna_a80bad9987",
+   "label": "IPESK",
+   "prediction": "IPESK",
+   "confidence": 0.9979,
+   "correct": true,
+   "accepted": true
+  },
+  {
+   "code": "patna_f34227e1af",
+   "label": "GABJZ",
+   "prediction": "9ABJZ",
+   "confidence": 0.6883,
+   "correct": false,
+   "accepted": true
+  },
+  {
+   "code": "patna_fe2b9fc8e5",
+   "label": "PVBPN",
+   "prediction": "PVBPN",
+   "confidence": 0.9985,
+   "correct": true,
+   "accepted": true
+  }
+ ]
+}

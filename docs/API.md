@@ -33,12 +33,12 @@ pip install "captcha-solver[http] @ git+https://github.com/deveshrohan/captcha-s
 ```
 
 Not on PyPI; install from GitHub or a checkout. Requires Python ≥ 3.9, `numpy`, `pillow` and `torch` (CPU is enough). The
-wheel bundles every model and template, about 160 MB. No network access is
+wheel bundles every model and template, about 210 MB. No network access is
 needed at runtime.
 
 ```python
 import captcha_solver as cs
-cs.__version__          # '0.1.0'
+cs.__version__          # '0.3.0'
 ```
 
 ## Quick start
@@ -183,10 +183,10 @@ A frozen dataclass. `str(result)` is the text.
 | `rejected-by-site` | `submit` returned `False`/`None` | the loop fetches a new captcha |
 
 **What confidence means.** For the model-free readers (`kaveri`, `udyam`,
-`ngt`, `hrmut`, `mhigr`, `gujhc`, `madhc`, `karhc`) it measures how much of
+`ngt`, `hrmut`, `mhigr`, `gujhc`, `madhc`, `karhc`, `k2`, `cersai`, `hrrera`, `mcacdm`, `cestat`, `tgrera`) it measures how much of
 the ink the matched glyphs explain, capped by the margin to the next-best
 answer. It falls when the generator changes. For the neural readers
-(`securimage`, `gst`, `mca`, `epfo`, `itat`, `itat2`, `bharatkosh`, `calhc`) it is the
+(`securimage`, `gst`, `mca`, `epfo`, `itat`, `itat2`, `bharatkosh`, `calhc`, `dcourts`, `garera`, `uprera`) it is the
 decoder's per-character probability, and it can be high on a wrong read. Pass
 `submit` for those.
 
@@ -195,6 +195,7 @@ decoder's per-character probability, and it can be high on a wrong read. Pass
 ```
 CaptchaError                 base class -- catch this to catch everything below
 ├── UnsupportedCaptcha       not an image, or a size no reader handles
+├── MissingDependency        the kind needs tesseract/scipy and it is not installed
 └── CaptchaUnsolved          solve_with_retry ran out of attempts
         .attempts            list[Result], one per fetch, each with its reason
 ```
@@ -234,6 +235,69 @@ float, "what": str}`.
 | `madhc` | Madras High Court | 120×60 | 6 | 0.99 | 54 |
 | `calhc` | Calcutta High Court | 120×36 | 6 | 0.90 | 16 |
 | `karhc` | Karnataka High Court | 100×20 | 6 | 0.70 | 1 |
+| `k2` | Karnataka Khajane-II treasury (Kaveri payments) | 200×50 | 5 | 0.90 | 80 |
+| `cersai` | CERSAI | 200×45 | 6 | 0.95 | 69 |
+| `aphc` | Andhra Pradesh High Court (sum) | 110×33 | varies | 0.50 | 41 |
+| `hrrera` | Haryana / J&K / Assam RERA | 130×40 | 6 | 0.95 | 24 |
+| `pbrera` | Punjab RERA (also Chandigarh) | 100×38 | 6 | 0.50 | ~440 |
+| `hprera` | Himachal Pradesh RERA documents | 130×35 | 6 | 0.30 | — |
+| `mcacdm` | MCA CDM master-data export | 120×38 | 6 | 0.99 | 2 |
+| `cestat` | CESTAT case status | 100×35 | 4 (of 6) | 0.35 | ~25 |
+| `sci` | Supreme Court of India (arithmetic) | 220×80 | varies | 0.60 | ~50 |
+| `dcourts` | District courts (`<district>.dcourts.gov.in`) | 225×85 | 5 | 0.50 | ~40 |
+| `tgrera` | Telangana RERA | 158×48 | 5 | 0.85 | ~5 |
+| `garera` | Goa RERA | 200×45 | 6 | 0.70 | ~12 |
+| `uprera` | Uttar Pradesh RERA | 150×35 | 5 | 0.70 | ~11 |
+
+`aphc` captchas read like `77plus8`, and `sci` ones like `6 - 2`.
+`Result.text` is the answer to submit (`85`, `4`), not the expression.
+
+**Several renders of one answer.** Three portals re-draw the same answer on
+request, so the retry loop can vote over renders:
+
+- Bharatkosh: `GenerateCaptcha?New=0`.
+- District courts: the same `scid`.
+- Supreme Court: the same `scid`.
+
+Give `solve_with_retry` a `fetch(new)`: `new=True` draws a new answer and
+`new=False` re-renders the current one. For example:
+
+```python
+def fetch(new):
+    global scid
+    if new:
+        scid = secrets.token_hex(20)     # district courts: any unknown 40-hex id draws a new code
+    return s.get(f"{base}/?_siwp_captcha&id={scid}").content
+```
+
+District-court codes survive a wrong guess, so after a rejection the loop
+submits the runner-up readings of the same renders (`max_guesses`, default 3)
+before fetching again. You can also call
+`captcha_solver.engine.api.solve_dcourts_group(images)` yourself.
+
+**Portal quirks**
+
+- **District-court and Supreme Court pages are cached.** Every visitor gets
+  the same `scid` until the cache turns over. For the Supreme Court, add a
+  throwaway query string to the page URL (`?nc=<random>`) to get a fresh
+  `scid`.
+- **CESTAT's image shows only the first 4 of the 6 characters** its form
+  takes. Its own page script fills the field with `111111`, so the captcha
+  appears not to be checked at all. The reader returns the 4 visible
+  characters.
+- **UP RERA (MSCaptcha)** rejects an answer submitted within about 4 s of the
+  fetch, even a correct one, so wait before submitting.
+- **MCA CDM** accepts TLS 1.3 only, as does Karnataka HC.
+- **Goa RERA and CERSAI are both 200×45.** CERSAI's ink is green and Goa's is
+  neutral, and `identify` tells them apart that way.
+
+`pbrera` and `hprera` need the `tesseract` binary on `PATH`, and `hprera`
+also needs `scipy`. `KINDS[kind]["requires"]` lists what each kind needs. If
+something is missing, `solve` raises `MissingDependency` instead of returning
+a misread. `hprera` also reads macOS's
+`/System/Library/Fonts/Supplemental/Arial.ttf` when it exists; without it, it
+uses Tesseract alone. Its 0.30 gate is not calibrated: the live check (27/30
+accepted) recorded no confidences. Pass `submit`.
 
 Gates were chosen on each reader's validation split, never on its test
 split. Held-out accuracy and how each reader works are in the

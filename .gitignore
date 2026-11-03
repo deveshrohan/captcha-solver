@@ -67,3 +67,21 @@ karhc_raw/
 build/
 dist/
 *.egg-info/
+
+# Readers ported from other projects (raw captures, never distributed)
+cersai_raw/
+aphc_raw/
+k2_raw/
+hrrera_raw/
+pbrera_raw/
+dcourts_raw/
+sci_raw/
+cestat_raw/
+mcacdm_raw/
+tg_rera_raw/
+ga_rera_raw/
+up_rera_raw/
+!solver/ga_rera_model.pt
+!solver/up_rera_model.pt
+!solver/dcourts_model.pt
+sci_raw/

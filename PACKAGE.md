@@ -90,13 +90,24 @@ r = cs.solve_url(CAPTCHA_URL, session=s, submit=submit)
 ## Supported captchas
 
 `cs.KINDS` lists each kind's image size, answer length and gate. Kinds are
-told apart by image size, plus a content test for the one shared size
-(120×40: gstat vs NGT). An unknown size raises `cs.UnsupportedCaptcha` and is
-never guessed.
+told apart by image size, plus a content test for the three shared sizes
+(120×40: gstat vs NGT; 200×50: Gujarat HC vs K2, by alpha channel; 200×45:
+CERSAI vs Goa RERA, by ink colour). An
+unknown size raises `cs.UnsupportedCaptcha` and is never guessed.
 
 securimage (eCourts), gstat, ngt, gst, mca, epfo, kaveri, udyam, itat
 (before Oct 2026) / itat2 (ITAT since Oct 2026), bharatkosh, hrmut, mhigr, gujhc / madhc / calhc / karhc (Gujarat, Madras,
-Calcutta and Karnataka High Courts).
+Calcutta and Karnataka High Courts), aphc (Andhra Pradesh HC; the answer is
+the sum the image spells out), dcourts (every `<district>.dcourts.gov.in`
+site), sci (Supreme Court; the answer is the arithmetic result), cestat,
+mcacdm (MCA CDM export), k2 (Karnataka Khajane-II treasury), cersai, and the
+RERA portals hrrera (Haryana, J&K, Assam), pbrera (Punjab, Chandigarh),
+hprera (Himachal Pradesh documents), tgrera (Telangana), garera (Goa) and
+uprera (Uttar Pradesh).
+
+`pbrera` and `hprera` need the `tesseract` binary (and `hprera` needs
+`scipy`). Without them `solve` raises `cs.MissingDependency`. Every other kind
+needs only numpy, pillow and torch.
 
 Endpoint notes that bite: Gujarat HC's `CaptchaServlet` needs `?ct=S` (without
 it the body is empty). Karnataka HC accepts TLS 1.3 only, which rules out

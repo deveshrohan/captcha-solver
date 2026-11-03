@@ -17,7 +17,7 @@ else:
 from PIL import Image, UnidentifiedImageError
 
 __all__ = ["KINDS", "Result", "CaptchaError", "UnsupportedCaptcha",
-           "CaptchaUnsolved", "identify", "solve", "solve_with_retry",
+           "CaptchaUnsolved", "MissingDependency", "identify", "solve", "solve_with_retry",
            "solve_url", "warmup"]
 
 
@@ -41,9 +41,27 @@ KINDS = {
     "madhc":      dict(size=(120, 60), length=6, what="Madras High Court"),
     "calhc":      dict(size=(120, 36), length=6, what="Calcutta High Court"),
     "karhc":      dict(size=(100, 20), length=6, what="Karnataka High Court"),
+    "k2":         dict(size=(200, 50), length=5, what="Karnataka Khajane-II treasury (Kaveri payments)"),
+    "cersai":     dict(size=(200, 45), length=6, what="CERSAI"),
+    # the text is e.g. "77plus8"; the answer returned (and submitted) is "85"
+    "aphc":       dict(size=(110, 33), length=None, what="Andhra Pradesh High Court (sum)"),
+    "hrrera":     dict(size=(130, 40), length=6, what="Haryana / J&K / Assam RERA"),
+    "pbrera":     dict(size=(100, 38), length=6, what="Punjab RERA (also Chandigarh)"),
+    "hprera":     dict(size=(130, 35), length=6, what="Himachal Pradesh RERA documents"),
+    "mcacdm":     dict(size=(120, 38), length=6, what="MCA CDM master-data export"),
+    # the form takes 6 characters, but the image shows only the first 4
+    "cestat":     dict(size=(100, 35), length=4, what="CESTAT case status"),
+    "dcourts":    dict(size=(225, 85), length=5, what="District courts (dcourts.gov.in, securimage-wp)"),
+    "tgrera":     dict(size=(158, 48), length=5, what="Telangana RERA"),
+    "garera":     dict(size=(200, 45), length=6, what="Goa RERA"),
+    # MSCaptcha rejects an answer submitted within ~4 s of the fetch
+    "uprera":     dict(size=(150, 35), length=5, what="Uttar Pradesh RERA"),
+    # "6 - 2" -> "4": the answer is returned, like aphc
+    "sci":        dict(size=(220, 80), length=None, what="Supreme Court of India (arithmetic)"),
 }
 for _k, _v in KINDS.items():
     _v["gate"] = _api.GATES[_k]
+    _v["requires"] = _api.REQUIRES.get(_k, ())
 
 
 class CaptchaError(Exception):
@@ -52,6 +70,11 @@ class CaptchaError(Exception):
 
 class UnsupportedCaptcha(CaptchaError):
     """The image does not match any captcha this package can read."""
+
+
+class MissingDependency(CaptchaError):
+    """The kind's reader needs something not installed (see KINDS[kind]
+    ["requires"]): the `tesseract` binary or the `scipy` package."""
 
 
 class CaptchaUnsolved(CaptchaError):
@@ -99,7 +122,7 @@ def identify(image) -> str:
     pil = _open(image)
     kind = _api._SIZES.get(pil.size)
     if callable(kind):                       # two kinds share a size
-        kind = kind(pil.convert("RGB"))
+        kind = kind(pil)                     # as opened: K2 is told by alpha
     if kind is None:
         raise UnsupportedCaptcha(
             "no reader for %dx%d images (supported sizes: %s)" % (
@@ -137,6 +160,10 @@ def solve(image, kind: Optional[str] = None, min_conf: Optional[float] = None) -
         kind = identify(image)
     elif kind not in KINDS:
         raise ValueError("unknown kind %r; expected one of %s" % (kind, sorted(KINDS)))
+    if KINDS[kind]["requires"] and not _api._available(kind):
+        raise MissingDependency(
+            "%s captchas need %s installed (tesseract: `brew install tesseract`"
+            " or `apt install tesseract-ocr`)" % (kind, " and ".join(KINDS[kind]["requires"])))
     # hand the engine the original object: Kaveri needs its alpha channel
     text, conf, kind = _api.solve_bytes(image, kind=kind)
     ok, reason = _judge(text, float(conf), kind, min_conf)
@@ -153,7 +180,7 @@ def _takes_new(fetch):
 def solve_with_retry(fetch: Callable, submit: Optional[Callable] = None,
                      kind: Optional[str] = None, max_attempts: int = 5,
                      min_conf: Optional[float] = None, max_renders: int = 5,
-                     raise_on_failure: bool = True) -> Result:
+                     raise_on_failure: bool = True, max_guesses: int = 3) -> Result:
     """Fetch, read and (optionally) submit until a captcha is solved.
 
     fetch()        -> image bytes of a FRESH captcha. It must go through the
@@ -170,10 +197,13 @@ def solve_with_retry(fetch: Callable, submit: Optional[Callable] = None,
     instead. The returned Result always belongs to the captcha fetched last,
     which is the one the server session holds.
 
-    Bharatkosh: if `fetch` takes a `new` argument, `fetch(new=True)` must draw
-    a new answer and `fetch(new=False)` re-render the current one
-    (`GenerateCaptcha?New=1` / `New=0`); up to `max_renders` renders of one
-    answer are voted over before a new answer is drawn.
+    Bharatkosh and district courts: if `fetch` takes a `new` argument,
+    `fetch(new=True)` must draw a new answer and `fetch(new=False)` re-render
+    the current one (Bharatkosh `GenerateCaptcha?New=1` / `New=0`; district
+    courts: the same `scid` again). Up to `max_renders` renders of one answer
+    are voted over before a new answer is drawn. District-court codes survive
+    a wrong guess, so after a rejection up to `max_guesses` readings in all
+    are submitted before fetching again.
 
     Raises CaptchaUnsolved after `max_attempts` fetches of a new answer
     (unless raise_on_failure=False, which returns the last Result)."""
@@ -182,16 +212,24 @@ def solve_with_retry(fetch: Callable, submit: Optional[Callable] = None,
     for attempt in range(1, max_attempts + 1):
         image = fetch(new=True) if rerender else fetch()
         r = solve(image, kind=kind, min_conf=min_conf)
-        if r.kind == "bharatkosh" and rerender and not r.accepted:
-            images = [image]
+        images = [image]
+        if r.kind in _api.GROUPS and rerender and not r.accepted:
+            group = _api.GROUPS[r.kind]
             while not r.accepted and len(images) < max_renders:
                 images.append(fetch(new=False))
-                text, conf = _api.solve_bharatkosh_group(images)
-                ok, reason = _judge(text, float(conf), "bharatkosh", min_conf)
-                r = Result(text, float(conf), "bharatkosh", ok, reason)
+                text, conf = group(images)
+                ok, reason = _judge(text, float(conf), r.kind, min_conf)
+                r = Result(text, float(conf), r.kind, ok, reason)
         r = replace(r, attempts=attempt)
         if r.accepted and submit is not None:
             response = submit(r.text)
+            if (response is False or response is None) and r.kind in _api.STICKY:
+                # the same code is still live: try the runner-up readings
+                for alt, _ in _api.STICKY[r.kind](images)[1:max_guesses]:
+                    response = submit(alt)
+                    if response is not False and response is not None:
+                        r = replace(r, text=alt)
+                        break
             if response is False or response is None:
                 r = replace(r, accepted=False, reason="rejected-by-site")
             else:

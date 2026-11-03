@@ -31,6 +31,19 @@ Local, synthetic-trained captcha readers. `solve.py` auto-routes by image size
 | madhc | 120×60 | 6 overlapping grey digits | additive −log cover of AHGBold digits, **no model** | **30/30 exact**; 300/300 harvested at fidelity ≥ 0.998 |
 | calhc | 120×36 | 6 of `2346789abcdefghjmnpqrtuxyz`, per-glyph font/size/tilt | mews/captcha port → CRNN+CTC, synthetic-only | **30/30 exact**; 299/300 harvested above gate |
 | karhc | 100×20 | 6 black digits, faint lavender noise | GD font 5 on a fixed grid → bitmap lookup, **no model** | **30/30 exact**; 92/92 harvested above gate |
+| k2 | 200×50 | 5 of `abcdefghkmnprwxy2345678`, black on transparent, one curve | DejaVu Sans 48 transmittance cover, **no model** | 4/4 native captures (labels checked by eye); 40/40 in its source project |
+| cersai | 200×45 | 6 green mixed-case alnum | native-height glyph templates, beam over 6 | **40/40 exact held-out** (39 above gate, all correct); 187/200 unlabelled above gate, 24/24 spot-checked |
+| aphc | 110×33 | `<a>plus<b>` white on grey; answer is the sum | 14 fixed 16×13 bitmaps, **no model** | **44/44** (40 fresh captures checked by eye) |
+| hrrera | 130×40 | 6 mixed-case alnum, NIC PHP GD (HR, J&K, Assam) | whitespace segments → glyph bitmaps | 180/180 server-accepted gold; live 1775/1776 HR |
+| pbrera | 100×38 | 6 uppercase hex (Punjab, Chandigarh) | dark-ink threshold → Tesseract vote (**needs tesseract**) | 60/60 server-accepted gold; live 462/596 (77.5%) |
+| hprera | 130×35 | 6 mixed-case alnum | Arial cover + Tesseract (**needs tesseract, scipy**) | live 27/30; no images kept |
+| mcacdm | 120×38 | 6 red mixed-case alnum on grey (MCA CDM export) | GD font 5 cells at a fixed origin, **no model** | **75/75 exact held-out** at confidence 1.0 |
+| cestat | 100×35 | 4 visible (of 6) black serif chars on cyan | Latin Modern Roman Bold cells at fixed pens, **no model** | **60/60 exact held-out** |
+| sci | 220×80 | `a ± b` with per-glyph size/tilt; answer is the result | connected pieces → operator by shape, digits by k-NN exemplars, **no model** | 58/60 renders exact, 52/52 accepted correct; **30/30** voted over 2 renders |
+| dcourts | 225×85 | 5 case-folded alnum, securimage-wp (warp, lines, noise) | Securimage 4 renderer port → CRNN+CTC + real fine-tune, **vote across re-renders** | 151/160 renders exact (94.4%), 98.9% char; **39/40** voted over 3 renders, **40/40 within 2 guesses** |
+| tgrera | 158×48 | 5 of 19 uppercase letters, navy Times Italic on a dot lattice | fixed 25 px slots, joint template cover, **no model** | **78/78 exact held-out** |
+| garera | 200×45 | 6 mixed-case alnum, Arial Italic, per-glyph tilt | segment → per-glyph CNN (synthetic + real fine-tune) | **53/53 held-out**; 10/10 accepted live |
+| uprera | 150×35 | 5 of 27 uppercase/digits, MSCaptcha green, random fonts | 30 px slots → per-glyph CNN | 34/40 exact (85%), 97% char; 33/34 accepted correct |
 
 ```bash
 pip install torch numpy pillow       # inference deps (scipy is training-only)
@@ -1392,3 +1405,175 @@ python3 train_itat2.py 13 && python3 finetune_itat2.py 30
 python3 eval_hc.py itat2
 ```
 
+### HP RERA document captcha
+
+`solver.hprera.solve_image(image_bytes)` reads the public ViewOpenFile 130x35
+challenge using local Arial glyph coverage and a local Tesseract fallback.
+It returns `(answer, confidence)` without network calls or training writes.
+The caller must verify the answer through the portal's ViewValidatedFile form,
+preserving the session, hidden Path and anti-forgery token in memory.
+
+The document mirror imports this reader directly, as it does the other RERA
+readers. Run the server-verified evaluation from the mirror directory:
+
+```sh
+python3 -B /Users/deveshrohan/Downloads/captcha-solver/solver/hprera_eval.py --samples 30
+```
+
+It uses the mirror's shared host lock and 1.5-second pacing. Captcha images and
+answers stay in memory; recognized document prefixes are buffered in memory and
+discarded, with a 16 MiB cap on other responses. No S3 upload or manifest write is performed. Accuracy, distinct challenge
+count, transport-unverified cases and the frozen reader hash are recorded in
+`docs/runtime/round4-hp-captcha-eval.json`; the Round 4 mirror report includes the
+live result. To isolate the measurement, stop the HP mirror worker first with
+`docs/hp.STOP`, then remove that file after evaluation.
+
+
+## Readers collected from other projects (`k2`, `cersai`, `aphc`, `hrrera`, `pbrera`, `hprera`)
+
+On 2026-11-03 the whole disk was searched for captcha-solving code outside
+this repo. These six readers were brought in from it. Each one is
+offline and routed by image size like the rest.
+
+| kind | came from | captcha URL |
+|---|---|---|
+| k2 | blrMent `scripts/local/captcha-solver/solver/k2.py` | `k2.karnataka.gov.in/wps/PA_*/CustomSimpleCaptchaServlet` |
+| cersai | blrMent `scripts/local/records/captcha.py` + `captcha-lab/` | `www.cersai.org.in/CERSAI/captcha.jpg` (after `home.prg`) |
+| aphc | litigation-corpus `crawlers/aphc_site.py:read_captcha` | `digi-courts.aphc.ap.gov.in/csis_ap/loadCaptcha?date=<ms>` |
+| hrrera, pbrera, hprera | blrMent-corpus `rera-states/` harvesters (files already in `solver/`) | per state portal |
+
+**k2 and gujhc share 200×50.** `_route_200x50` tells them apart. K2 is an
+RGBA PNG whose ink is the alpha channel. Gujarat HC is opaque RGB with a mean
+of at least 176. A K2 image whose alpha was stripped is entirely black, so it
+still routes to k2 and reads as unreadable. Pass native bytes: a K2
+screenshot (201×51) is refused, not guessed.
+
+**cersai** labels are the source project's 100 human transcriptions, with
+the same frozen 60/40 split (`cersai_split.json`). The templates come from
+the 60 training captures only. Goa RERA is also 200×45; it is not wired
+(see below), so that size routes to cersai.
+
+**aphc** returns the sum, not the expression. `solver.aphc.read(image)`
+gives `('77plus8', 85, worst_px)`. Confidence is `1 - worst/60`. The source
+refused a read above 30 px, which is the 0.5 gate.
+
+**RERA.** The readers in `solver/*rera*.py` belong to the RERA harvesters,
+which import them directly and keep writing new train glyphs
+(`add_accepted` / `learn` rewrite `*_glyphs.json`). The package wires three
+of them, read-only:
+
+* `hrrera` serves every 130×40 NIC PHP GD portal (Haryana, J&K, Assam).
+  `asrera` and `jkrera` are the same reader. On 60 server-accepted captures
+  from each state, `hrrera` alone reads 180/180 above its gate. Its
+  Tesseract fallback scores 0.5, so it can never pass the 0.95 gate, and the
+  kind works without Tesseract installed.
+* `pbrera` is Tesseract voting over four thresholds. Confidence is
+  votes/4.
+* `hprera` is an Arial glyph cover with a Tesseract fallback.
+
+The gold labels for hrrera and pbrera are answers the portal accepted for
+these same readers. That proves they agree with the portal, but it is
+survivor-biased, so the live accept rates in the table are the honest
+numbers.
+
+The harvesters' own `uprera`, `tgrera` and `garera` readers were weak live
+(11%, 63% and 6% accepted), so they are not wired. New readers replace them
+(see the next section). `cgrera` is not wired either: CG's code is generated
+in the browser, so there is no image to read.
+
+```sh
+python3 download_hc.py aphc 40 aphc_raw        # 1.5-3 s between images
+python3 -m pytest tests/test_more_readers.py   # real-image tests skip without *_raw/
+```
+
+## Readers built for the remaining portals (`dcourts`, `sci`, `cestat`, `mcacdm`, `tgrera`, `garera`, `uprera`)
+
+The other projects read these with Tesseract or Claude vision, or had weak
+readers. Each one was rebuilt here from its own captures, labelled by eye or
+accepted by the server. Each has its own `*_labels.json`, `*_split.json` and
+`*_eval.json`. Templates and fine-tunes come from the train split only.
+
+| kind | captcha URL | generator |
+|---|---|---|
+| dcourts | `https://<district>.dcourts.gov.in/?_siwp_captcha&id=<scid>` | securimage-wp plugin defaults (Securimage 4.0.0-RC2) |
+| sci | `https://www.sci.gov.in/?_siwp_captcha&id=<scid>` | securimage-wp, math mode |
+| cestat | `https://cestat.gov.in/captcha?rand=<r>` (after `/casestatus`) | GD `imagettftext`, Latin Modern Roman 10 Bold |
+| mcacdm | `https://mcacdm.nic.in/captcha.php?context=company\|llp` | GD `imagestring`, font 5 |
+| tgrera | `https://rerait.telangana.gov.in/SearchList/SearchCaptcha` | Times Italic on a dot lattice |
+| garera | `https://rera.goa.gov.in/reraApp/captcha.jpg?x=<ns>` | Arial Italic, no antialiasing |
+| uprera | `up-rera.in` MSCaptcha `CaptchaImage` | MSCaptcha |
+
+**District courts.** The S3WaaS district sites run the securimage-wp plugin
+on its defaults, checked against the plugin's source. They are 225×85, with 5
+characters from `abcdefghijkmnopqrstuvwxzyABCDEFGHJKLMNPQRSTUVWXZY0123456789`
+in AHGBold, a `#F2F2F2` background, and text, lines and noise all in
+`#7D7D7D`. `solver/dcourts.render` is a line-by-line port of Securimage 4's
+`doImage`. A CRNN is pretrained on fresh renders and then fine-tuned on
+eye-labelled real ones.
+
+Validation ignores case, so the reader predicts 36 case-folded classes.
+Three facts about the portal shape how it is fetched and read:
+
+* **The code is sticky.** Re-fetching the same `scid` re-renders the same
+  code with a new warp, noise and lines, and a wrong guess doesn't change it.
+  The reader votes across renders (`solve_group`). The retry loop also tries
+  runner-up readings after a rejection.
+* **The page is cached.** Every visitor sees one `scid` until the cache turns
+  over. The plugin makes a new code for any 40-hex id it doesn't know, which is
+  how `download_dcourts.py` collects distinct codes.
+* **`g`/`9` and `o`/`0` are hard even by eye.** Codes that stayed ambiguous
+  across four renders were left unlabelled (`dcourts_skipped.json`) rather
+  than guessed.
+
+Training needs a CPU pass. BatchNorm running statistics come out wrong when
+this model trains on MPS here: training loss fell to 0.1 while eval-mode
+accuracy fell to 2%. So `train_dcourts.py` recomputes them on CPU from fresh
+renders before every evaluation and save.
+
+Measured on 40 held-out codes, 160 renders, all labelled by eye
+(`dcourts_eval.json`):
+
+| | result |
+|---|---|
+| one render | 151/160 exact (94.4%), 98.9% of characters |
+| voted over 2 / 3 / 4 renders | 39/40 codes |
+| 3 renders + runner-up guesses (`solve_with_retry` with `submit`) | 40/40 within 2 submissions |
+
+The miss is `g` read as `9`. The right word was the runner-up, at 0.31.
+Pretraining on renders alone reached 97.4% exact on the non-test real
+renders. Fine-tuning on 93 eye-labelled codes left the test numbers
+unchanged, and that model is the one shipped. The gate is 0.5, set on the
+val split.
+
+**Supreme Court.** It is the same plugin in math mode: `a + b` or `a - b`,
+with a from 1 to 10 and b from 1 to 5, so results run from 1 to 14 and are
+never negative. Each glyph has its own size and tilt. The reader splits the
+image into pieces of ink. It decides the operator by shape: a `+` has a
+column-ink peak and a `-` is flat. It reads each digit by nearest exemplars,
+using its bitmap, box size and holes. A `10` written as one joined piece is
+its own class. The plain page is cached, so add `?nc=<random>` for a fresh
+`scid`.
+
+**CESTAT** draws 6 characters at fixed 23 px pens, but the image is only 100
+px wide, so characters 5 and 6 fall outside it. The reader returns the 4 that
+are visible. The case-status page's own script fills the captcha field with
+`111111`, so the site looks like it does not check it.
+
+**MCA CDM** is libgd's built-in font 5 at origin (30, 10). The digit and
+lowercase cells match libgd's own bitmaps byte for byte. `context=company`
+and `context=llp` render the same. The host is TLS 1.3 only.
+
+**RERA (TG, GA, UP).** TG is model-free, and its test set includes 14 answers
+the server accepted. GA's CNN also got 10/10 accepted on the live search. GA
+returns `l` for the `I`/`l` bar, and the portal accepted `l` every time. For UP,
+wait about 4 s before submitting: MSCaptcha rejects fast answers, even
+correct ones. Its remaining errors are small glyphs (`E`/`F`, `V`/`Y`, `3`/`9`).
+
+```sh
+python3 download_dcourts.py 40 4 kota      # one process per host; 1.5 s pacing
+python3 train_dcourts.py 12 && python3 finetune_dcourts.py 30 && python3 eval_dcourts.py
+python3 download_sci.py 60 sci_raw && python3 eval_sci.py
+python3 download_cestat.py 150 cestat_raw && python3 eval_cestat.py test
+python3 download_mcacdm.py 150 mcacdm_raw
+python3 download_rera.py ga 120 && python3 train_rera.py ga pretrain && python3 train_rera.py ga finetune
+```

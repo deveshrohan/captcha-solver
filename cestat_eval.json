@@ -1,0 +1,495 @@
+{
+ "kind": "cestat",
+ "split": "test",
+ "n": 60,
+ "exact": 60,
+ "char_accuracy": 1.0,
+ "gate": 0.35,
+ "accepted": 60,
+ "accepted_correct": 60,
+ "visible_chars": 4,
+ "answer_length": 6,
+ "ms_per_solve": 16.1,
+ "rows": [
+  {
+   "path": "cestat_raw/cestat_0000.jpg",
+   "label": "LIv2",
+   "prediction": "LIv2",
+   "confidence": 0.8338703189193889,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0001.jpg",
+   "label": "Lu6x",
+   "prediction": "Lu6x",
+   "confidence": 0.6215659218987742,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0002.jpg",
+   "label": "A1qP",
+   "prediction": "A1qP",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0003.jpg",
+   "label": "4b53",
+   "prediction": "4b53",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0004.jpg",
+   "label": "suUH",
+   "prediction": "suUH",
+   "confidence": 0.5375866854640348,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0005.jpg",
+   "label": "31EX",
+   "prediction": "31EX",
+   "confidence": 0.8346236086232298,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0006.jpg",
+   "label": "SyL4",
+   "prediction": "SyL4",
+   "confidence": 0.6427158495096905,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0007.jpg",
+   "label": "d8dj",
+   "prediction": "d8dj",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0008.jpg",
+   "label": "aRX2",
+   "prediction": "aRX2",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0009.jpg",
+   "label": "id2X",
+   "prediction": "id2X",
+   "confidence": 0.4849071230385328,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0010.jpg",
+   "label": "81ki",
+   "prediction": "81ki",
+   "confidence": 0.5842852795141867,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0011.jpg",
+   "label": "G0fX",
+   "prediction": "G0fX",
+   "confidence": 0.5104120010461671,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0012.jpg",
+   "label": "VV6r",
+   "prediction": "VV6r",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0013.jpg",
+   "label": "XsF1",
+   "prediction": "XsF1",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0014.jpg",
+   "label": "3VG2",
+   "prediction": "3VG2",
+   "confidence": 0.5743144088515395,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0015.jpg",
+   "label": "903t",
+   "prediction": "903t",
+   "confidence": 0.8176237276583689,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0016.jpg",
+   "label": "039b",
+   "prediction": "039b",
+   "confidence": 0.7049964060281028,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0017.jpg",
+   "label": "2rYF",
+   "prediction": "2rYF",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0018.jpg",
+   "label": "tcGF",
+   "prediction": "tcGF",
+   "confidence": 0.6647952556339054,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0019.jpg",
+   "label": "7Jnx",
+   "prediction": "7Jnx",
+   "confidence": 0.6109676552270391,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0020.jpg",
+   "label": "Txx3",
+   "prediction": "Txx3",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0021.jpg",
+   "label": "Mkkd",
+   "prediction": "Mkkd",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0022.jpg",
+   "label": "fC5e",
+   "prediction": "fC5e",
+   "confidence": 0.8103836482064327,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0023.jpg",
+   "label": "Ya1S",
+   "prediction": "Ya1S",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0024.jpg",
+   "label": "0XpW",
+   "prediction": "0XpW",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0025.jpg",
+   "label": "F0qW",
+   "prediction": "F0qW",
+   "confidence": 0.9410393761074728,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0026.jpg",
+   "label": "t4rf",
+   "prediction": "t4rf",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0027.jpg",
+   "label": "GfXI",
+   "prediction": "GfXI",
+   "confidence": 0.5738247587155099,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0028.jpg",
+   "label": "ED01",
+   "prediction": "ED01",
+   "confidence": 0.8033013591317689,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0029.jpg",
+   "label": "42u5",
+   "prediction": "42u5",
+   "confidence": 0.6071429633263464,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0030.jpg",
+   "label": "8VcG",
+   "prediction": "8VcG",
+   "confidence": 0.5853021630580244,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0031.jpg",
+   "label": "9B44",
+   "prediction": "9B44",
+   "confidence": 0.7196907376307532,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0032.jpg",
+   "label": "7bqt",
+   "prediction": "7bqt",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0033.jpg",
+   "label": "7N8r",
+   "prediction": "7N8r",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0034.jpg",
+   "label": "5jiP",
+   "prediction": "5jiP",
+   "confidence": 0.5480817846301228,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0035.jpg",
+   "label": "CSrh",
+   "prediction": "CSrh",
+   "confidence": 0.8463929137351541,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0036.jpg",
+   "label": "1Lf9",
+   "prediction": "1Lf9",
+   "confidence": 0.7724895372194475,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0037.jpg",
+   "label": "WG7w",
+   "prediction": "WG7w",
+   "confidence": 0.4892646526620011,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0038.jpg",
+   "label": "fi0H",
+   "prediction": "fi0H",
+   "confidence": 0.4589372557383903,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0039.jpg",
+   "label": "QVH6",
+   "prediction": "QVH6",
+   "confidence": 0.9939064688216235,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0046.jpg",
+   "label": "W7R9",
+   "prediction": "W7R9",
+   "confidence": 0.5631057582966346,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0051.jpg",
+   "label": "31AZ",
+   "prediction": "31AZ",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0054.jpg",
+   "label": "H0k6",
+   "prediction": "H0k6",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0057.jpg",
+   "label": "Tzbq",
+   "prediction": "Tzbq",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0058.jpg",
+   "label": "iXQ0",
+   "prediction": "iXQ0",
+   "confidence": 0.4256136372095568,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0060.jpg",
+   "label": "5Q9P",
+   "prediction": "5Q9P",
+   "confidence": 0.5933947432341895,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0062.jpg",
+   "label": "zhdE",
+   "prediction": "zhdE",
+   "confidence": 0.7184606982594097,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0064.jpg",
+   "label": "v1iM",
+   "prediction": "v1iM",
+   "confidence": 0.5477346062329819,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0072.jpg",
+   "label": "UpR1",
+   "prediction": "UpR1",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0081.jpg",
+   "label": "HCy3",
+   "prediction": "HCy3",
+   "confidence": 0.5495953091791513,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0097.jpg",
+   "label": "xrw8",
+   "prediction": "xrw8",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0105.jpg",
+   "label": "K3wZ",
+   "prediction": "K3wZ",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0107.jpg",
+   "label": "wMet",
+   "prediction": "wMet",
+   "confidence": 0.7108958478881539,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0118.jpg",
+   "label": "Fx0e",
+   "prediction": "Fx0e",
+   "confidence": 0.7696717485022376,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0119.jpg",
+   "label": "9tgp",
+   "prediction": "9tgp",
+   "confidence": 0.813714105260136,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0127.jpg",
+   "label": "Q3Xb",
+   "prediction": "Q3Xb",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0129.jpg",
+   "label": "wBn6",
+   "prediction": "wBn6",
+   "confidence": 0.45987867738735255,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0134.jpg",
+   "label": "5EZ7",
+   "prediction": "5EZ7",
+   "confidence": 0.8439790709541429,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0137.jpg",
+   "label": "dlJ7",
+   "prediction": "dlJ7",
+   "confidence": 0.4581807535189972,
+   "correct": true,
+   "chars": 4
+  },
+  {
+   "path": "cestat_raw/cestat_0144.jpg",
+   "label": "kb4T",
+   "prediction": "kb4T",
+   "confidence": 1.0,
+   "correct": true,
+   "chars": 4
+  }
+ ]
+}

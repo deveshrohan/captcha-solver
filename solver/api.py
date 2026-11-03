@@ -42,6 +42,19 @@ from . import calhc as CH
 from . import gujhc as GH
 from . import madhc as MH
 from . import karhc as KH
+from . import cersai as CE
+from . import aphc as AP
+from . import k2 as K2
+from . import mcacdm as CDM
+from . import cestat as CT
+from . import dcourts as DC
+from . import tg_rera as TGR
+from . import ga_rera as GAR
+from . import up_rera as UPR
+from . import sci as SCI
+# The RERA readers (hrrera, pbrera, hprera) are imported on first use:
+# they shell out to Tesseract and hprera needs scipy, neither of which is a
+# package dependency, so `import solver.api` must not pull them in.
 from .model import DigitCNN
 from .pipeline import solve_image as _solve_gstat_path
 
@@ -84,8 +97,24 @@ def _route_120x40(pil):
         else "gstat"
 
 
+def _route_200x50(pil):
+    """Split the second size collision: Gujarat HC and Karnataka K2 are both
+    200x50 SimpleCaptcha renders.
+
+    K2 is an RGBA PNG with its ink in the alpha channel and the background
+    fully transparent. Gujarat HC is opaque RGB on a light background, with a
+    mean of at least 176 across all 300 harvested images. A K2 image whose
+    alpha was stripped by `convert("RGB")` comes out entirely black, so it
+    still routes to k2 (where it reads as unreadable) rather than to gujhc.
+    """
+    if pil.mode in ("RGBA", "LA", "PA") or "transparency" in pil.info:
+        if np.asarray(pil.convert("RGBA"))[:, :, 3].min() < 255:
+            return "k2"
+    return "k2" if np.asarray(pil.convert("L")).mean() < 100 else "gujhc"
+
+
 # (width, height) -> kind, or a callable(pil) -> kind where one size serves more
-# than one captcha.
+# than one captcha. Callables get the image as opened, alpha intact.
 _SIZES = {
     (60, 20): "hrmut",
     (100, 30): "mhigr",
@@ -99,10 +128,29 @@ _SIZES = {
     (150, 42): "itat",                 # ITAT before Oct 2026
     (150, 38): "itat2",                # ITAT since Oct 2026
     (150, 40): "bharatkosh",           # ITAT is 150x42 -- no collision
-    (200, 50): "gujhc",                # Gujarat HC (MCA 200x80, Kaveri 200x60)
+    (200, 50): _route_200x50,          # Gujarat HC or Karnataka K2, by alpha
     (120, 60): "madhc",                # Madras HC
     (120, 36): "calhc",                # Calcutta HC
     (100, 20): "karhc",                # Karnataka HC (MH IGR is 100x30)
+    (200, 45): GAR.route_200x45,       # CERSAI (green ink) or Goa RERA
+    (110, 33): "aphc",                 # Andhra Pradesh HC (sum captcha)
+    (130, 40): "hrrera",               # HR / J&K / Assam RERA (NIC PHP GD)
+    (100, 38): "pbrera",               # Punjab RERA, also serves Chandigarh
+    (130, 35): "hprera",               # HP RERA document downloads
+    (120, 38): "mcacdm",               # MCA CDM export (calhc is 120x36)
+    (100, 35): "cestat",               # CESTAT (shows 4 of its 6 characters)
+    (225, 85): "dcourts",              # district courts, securimage-wp (Udyam is 225x80)
+    (158, 48): "tgrera",               # Telangana RERA
+    (150, 35): "uprera",               # Uttar Pradesh RERA (MSCaptcha)
+    (220, 80): "sci",                  # Supreme Court arithmetic (securimage is 215x80)
+}
+
+# Kinds whose reader needs something outside the package's dependencies.
+# hrrera only falls back to Tesseract on a low-confidence glyph read, and
+# that read can never pass its gate, so it works without Tesseract.
+REQUIRES = {
+    "pbrera": ("tesseract",),
+    "hprera": ("tesseract", "scipy"),
 }
 
 # Recommended `min_conf` per kind. For the newer readers it was chosen on the
@@ -129,7 +177,36 @@ GATES = {
     "gujhc": 0.90,
     "calhc": 0.90,
     "karhc": 0.70,
+    "cersai": 0.95,          # source's gate: 39/40 held-out accepted, all right
+    "aphc": 0.50,            # worst digit mismatch <= 30 px; live reads 0.90-0.98
+    "k2": 0.90,              # exact cover reads score 1.0
+    "hrrera": 0.95,          # glyph path only; a Tesseract fallback scores 0.5
+    "pbrera": 0.50,          # 2 of 4 Tesseract variants agree
+    "hprera": 0.30,          # uncalibrated: 27/30 live, no confidences recorded
+    "mcacdm": 0.99,          # exact GD font-5 cells: 75/75 held-out at 1.0
+    "cestat": 0.35,          # margin; real reads >= 0.40, shifted text 0
+    "dcourts": 0.50,         # val split; 39/40 held-out voted, 40/40 within 2 guesses
+    "tgrera": 0.85,          # lowest correct 0.906; one blanked letter <= 0.817
+    "garera": 0.70,          # 51/53 held-out accepted, all correct
+    "uprera": 0.70,          # 34/40 held-out exact; 33 of 34 accepted correct
+    "sci": 0.60,             # 52/60 held-out renders accepted, all correct
 }
+
+
+def solve_dcourts_group(images):
+    """District-courts captcha from several renders of the SAME code (re-fetch
+    `/?_siwp_captcha&id=<scid>` with the same scid). -> (text, confidence)."""
+    return DC.solve_group(images)
+
+
+# Kinds whose server re-renders the SAME answer on request: several renders
+# are voted over. -> fn(images) -> (text, confidence)
+GROUPS = {"bharatkosh": None, "dcourts": solve_dcourts_group,      # filled below
+          "sci": lambda images: SCI.solve_group(images)}
+
+# Kinds whose code survives a wrong guess, so the runner-up readings of the
+# same renders can be submitted before fetching again.
+STICKY = {"dcourts": lambda images: DC.rank_group(images)}
 
 # Characters that carry no distinguishing information in a given captcha style,
 # so a read containing one is a coin flip no matter how good the model is.
@@ -276,7 +353,10 @@ def _load_calhc():
 
 def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False,
            kaveri=False, udyam=False, itat=False, ngt=False, bharatkosh=False, hrmut=False, mhigr=False,
-           gujhc=False, madhc=False, calhc=False, karhc=False, itat2=False):
+           gujhc=False, madhc=False, calhc=False, karhc=False, itat2=False,
+           cersai=False, aphc=False, k2=False, hrrera=False, pbrera=False,
+           hprera=False, mcacdm=False, cestat=False, dcourts=False,
+           tgrera=False, garera=False, uprera=False, sci=False):
     """Pre-load models at scraper startup so the first live solve isn't slow.
     Also runs one dummy forward to trigger lazy CUDA/oneDNN init. Call once.
 
@@ -333,11 +413,82 @@ def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False,
         Y.classes()
     if ngt:
         N.glyphs()
+    if cersai:
+        CE.templates()
+    if aphc:
+        AP.templates()
+    if k2:
+        K2.templates()
+    if mcacdm:
+        CDM.glyphs()
+    if cestat:
+        CT._cells()
+    if dcourts:
+        DC.model()
+    if tgrera:
+        TGR.templates()
+    if garera:
+        GAR.model()
+    if uprera:
+        UPR.model()
+    if sci:
+        SCI.templates()
+    if hrrera:
+        from . import hrrera as HR
+        HR.glyphs()
+    if hprera and _available("hprera"):
+        from . import hprera as HP
+        if HP.FONT.exists():
+            HP.templates()
+    # pbrera is Tesseract only: nothing to load
+
+
+def _available(kind):
+    """True when everything REQUIRES lists for `kind` is installed."""
+    import importlib.util
+    import shutil
+    for need in REQUIRES.get(kind, ()):
+        if need == "tesseract":
+            if shutil.which("tesseract") is None:
+                return False
+        elif importlib.util.find_spec(need) is None:
+            return False
+    return True
+
+
+def _solve_rera(kind, image):
+    """Run one of the RERA readers. A missing Tesseract binary is an
+    unreadable captcha, not a crash."""
+    try:
+        if kind == "hrrera":
+            from . import hrrera as HR
+            return HR.solve_image(image)
+        if kind == "pbrera":
+            from . import pbrera as PB
+            buf = io.BytesIO()
+            image.save(buf, format="PNG")
+            return PB.solve(buf.getvalue())
+        from . import hprera as HP
+        return HP.solve_image(image)
+    except FileNotFoundError:          # tesseract not on PATH
+        return "", 0.0
 
 
 def _to_pil(image):
     """Accept raw bytes, a filesystem path, or a PIL.Image -> grayscale PIL."""
     return _to_pil_rgb(image).convert("L")
+
+
+def _to_pil_any(image):
+    """Accept raw bytes, a filesystem path, or a PIL.Image -> PIL, mode as
+    stored (K2's ink and Kaveri's background live in the alpha channel)."""
+    if isinstance(image, Image.Image):
+        return image
+    if isinstance(image, (bytes, bytearray)):
+        return Image.open(io.BytesIO(image))
+    if isinstance(image, str):
+        return Image.open(image)
+    raise TypeError("image must be bytes, a path str, or a PIL.Image")
 
 
 def _to_pil_rgb(image):
@@ -582,16 +733,40 @@ def solve_bytes(image, kind=None):
     """Auto-route and solve. Returns (text, confidence, kind).
 
     kind is inferred from the image's native size; pass kind explicitly to force
-    it. Sizes are distinct except 120x40, which serves both gstat and NGT and is
-    resolved by a content test (`_route_120x40`)."""
-    pil = _to_pil_rgb(image)
+    it. Sizes are distinct except 120x40 (gstat or NGT) and 200x50 (Gujarat HC
+    or K2), which are resolved by content tests (`_route_120x40`,
+    `_route_200x50`)."""
+    original = _to_pil_any(image)
+    pil = original.convert("RGB")
     if kind is None:
         kind = _SIZES.get((pil.width, pil.height))
         if callable(kind):                    # shared size: decide by content
-            kind = kind(pil)
+            kind = kind(original)
         if kind is None:                      # unknown size: fall back to width
             kind = "securimage" if pil.width > 180 else "gstat"
-    if kind == "gujhc":
+    if kind == "k2":
+        text, conf = K2.solve_image(original)     # its ink is the alpha channel
+    elif kind == "cersai":
+        text, conf = CE.solve_image(pil)
+    elif kind == "aphc":
+        text, conf = AP.solve_image(pil)
+    elif kind == "mcacdm":
+        text, conf = CDM.solve_image(pil)
+    elif kind == "cestat":
+        text, conf = CT.solve_image(pil)
+    elif kind == "dcourts":
+        text, conf = DC.solve_image(pil)
+    elif kind == "tgrera":
+        text, conf = TGR.solve_image(original)    # RGBA PNG
+    elif kind == "garera":
+        text, conf = GAR.solve_image(pil)
+    elif kind == "uprera":
+        text, conf = UPR.solve_image(pil)
+    elif kind == "sci":
+        text, conf = SCI.solve_image(pil)
+    elif kind in ("hrrera", "pbrera", "hprera"):
+        text, conf = _solve_rera(kind, pil)
+    elif kind == "gujhc":
         text, conf = solve_gujhc(pil)
     elif kind == "madhc":
         text, conf = solve_madhc(pil)
@@ -665,3 +840,7 @@ def solve_with_retry(fetch, min_conf=0.90, max_tries=4, kind=None,
             continue          # unresolvable glyph in the read -> take a fresh captcha
         return text, conf, k, i
     return text, conf, k, max_tries
+
+
+# looked up at call time, so the function stays patchable
+GROUPS["bharatkosh"] = lambda images: solve_bharatkosh_group(images)

@@ -10,6 +10,7 @@
 !solver/bharatkosh_model.pt
 !solver/calhc_model.pt
 !solver/itat2_model.pt
+!solver/mca2_model.pt
 
 # Scraped captcha images and evaluation data — NOT distributed (they target live
 # third-party endpoints). Regenerate synthetic data with the renderer instead.
@@ -85,3 +86,7 @@ up_rera_raw/
 !solver/up_rera_model.pt
 !solver/dcourts_model.pt
 sci_raw/
+
+# MCA captcha, Nov 2026 format (raw images + audio, never distributed)
+mca2_raw/
+mca2_live/

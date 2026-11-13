@@ -1,0 +1,9 @@
+{
+ "mca2_raw/n0070.png": "4th glyph: stem whose top is hidden under a line; read T (no J hook)",
+ "mca2_raw/n0075.png": "5th glyph: eye read J, Whisper heard T; zoom shows a crossbar on both sides of the stem -> T (corrected)",
+ "mca2_raw/n0112.png": "1st glyph: eye read K; Whisper and the model both read Y; zoom shows an italic Y (arm+stem collinear, no K leg) -> Y (corrected)",
+ "mca2_raw/n0153.png": "5th glyph: bare stem, crossbar under a line; read T",
+ "mca2_raw/n0178.png": "1st glyph: X or Y with one arm under a line; left unlabelled",
+ "mca2_raw/n0211.png": "6th glyph: 7 or T; left unlabelled",
+ "mca2_raw/n0238.png": "2nd glyph: 7 or T; left unlabelled"
+}

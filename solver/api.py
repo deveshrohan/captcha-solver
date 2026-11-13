@@ -33,6 +33,7 @@ from . import itat as T
 from . import itat2 as T2
 from . import kaveri as K
 from . import mca as M
+from . import mca2 as M2
 from . import ngt as N
 from . import securimage as S
 from . import udyam as Y
@@ -64,6 +65,7 @@ _SECURIMAGE_MODEL = _os.path.join(_HERE, "securimage_model.pt")
 _GSTAT_MODEL = _os.path.join(_HERE, "model.pt")
 _GST_MODEL = _os.path.join(_HERE, "gst_model.pt")
 _MCA_MODEL = _os.path.join(_HERE, "mca_model.pt")
+_MCA2_MODEL = _os.path.join(_HERE, "mca2_model.pt")
 _EPFO_MODEL = _os.path.join(_HERE, "epfo_model.pt")
 _ITAT_MODEL = _os.path.join(_HERE, "itat_model.pt")
 _ITAT2_MODEL = _os.path.join(_HERE, "itat2_model.pt")
@@ -75,6 +77,7 @@ _securi = None
 _gstat = None
 _gst = None
 _mca = None
+_mca2 = None
 _epfo = None
 _itat = None
 _itat2 = None
@@ -113,6 +116,13 @@ def _route_200x50(pil):
     return "k2" if np.asarray(pil.convert("L")).mean() < 100 else "gujhc"
 
 
+def _route_200x80(pil):
+    """MCA changed generators in Nov 2026 without changing size. The old image
+    has exactly three flat colours (230 / 150 / 0); the new one blurs coloured
+    ink, lines and speckle into ~1700. See solver/mca2.py."""
+    return "mca2" if M2.looks_like_mca2(pil) else "mca"
+
+
 # (width, height) -> kind, or a callable(pil) -> kind where one size serves more
 # than one captcha. Callables get the image as opened, alpha intact.
 _SIZES = {
@@ -120,7 +130,7 @@ _SIZES = {
     (100, 30): "mhigr",
     (215, 80): "securimage",
     (182, 50): "gst",
-    (200, 80): "mca",
+    (200, 80): _route_200x80,          # MCA: old 3-colour format or Nov 2026 (mca2)
     (120, 40): _route_120x40,          # gstat or ngt, decided by content
     (150, 50): "epfo",
     (200, 60): "kaveri",
@@ -164,6 +174,7 @@ GATES = {
     "gstat": 0.90,
     "gst": 0.90,
     "mca": 0.90,
+    "mca2": 0.80,            # val split: 25/25 right, lowest 0.845; test 59/60, miss at 0.45
     "epfo": 0.90,
     "itat": 0.90,
     "itat2": 0.90,
@@ -291,6 +302,18 @@ def _load_mca():
     return _mca
 
 
+def _load_mca2():
+    global _mca2
+    if _mca2 is None:
+        with _lock:
+            if _mca2 is None:
+                m = M2.Mca2SlotCNN()
+                m.load_state_dict(torch.load(_MCA2_MODEL, map_location="cpu"))
+                m.eval()
+                _mca2 = m
+    return _mca2
+
+
 def _load_epfo():
     global _epfo
     if _epfo is None:
@@ -356,7 +379,7 @@ def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False,
            gujhc=False, madhc=False, calhc=False, karhc=False, itat2=False,
            cersai=False, aphc=False, k2=False, hrrera=False, pbrera=False,
            hprera=False, mcacdm=False, cestat=False, dcourts=False,
-           tgrera=False, garera=False, uprera=False, sci=False):
+           tgrera=False, garera=False, uprera=False, sci=False, mca2=False):
     """Pre-load models at scraper startup so the first live solve isn't slow.
     Also runs one dummy forward to trigger lazy CUDA/oneDNN init. Call once.
 
@@ -377,6 +400,10 @@ def warmup(securimage=True, gstat=False, gst=False, mca=False, epfo=False,
         m = _load_mca()
         with torch.no_grad():
             m(torch.zeros(1, 1, M.IN_H, M.IN_W))
+    if mca2:
+        m = _load_mca2()
+        with torch.no_grad():
+            m(torch.zeros(6, 1, M2.IN_H, 2 * M2.HALF))
     if epfo:
         m = _load_epfo()
         with torch.no_grad():
@@ -552,6 +579,14 @@ def solve_mca(image):
     pil = _to_pil_rgb(image)
     arr = M.load_real(pil)[None]
     text, conf = M.predict(_load_mca(), arr, "cpu")
+    return text[0], float(conf[0])
+
+
+def solve_mca2(image):
+    """Solve an MCA portal captcha in the Nov 2026 format (200x80, 6 chars
+    from `234679ABCDEFGHJKLMNPQRSTUVWXYZ`). Returns (text, confidence)."""
+    arr = M2.load_real(_to_pil_rgb(image))[None]
+    text, conf = M2.predict(_load_mca2(), arr, "cpu")
     return text[0], float(conf[0])
 
 
@@ -733,9 +768,9 @@ def solve_bytes(image, kind=None):
     """Auto-route and solve. Returns (text, confidence, kind).
 
     kind is inferred from the image's native size; pass kind explicitly to force
-    it. Sizes are distinct except 120x40 (gstat or NGT) and 200x50 (Gujarat HC
-    or K2), which are resolved by content tests (`_route_120x40`,
-    `_route_200x50`)."""
+    it. Where two kinds share a size (120x40 gstat/NGT, 200x50 Gujarat HC/K2,
+    200x45 CERSAI/Goa RERA, 200x80 old/new MCA) a content test in _SIZES
+    decides."""
     original = _to_pil_any(image)
     pil = original.convert("RGB")
     if kind is None:
@@ -784,6 +819,8 @@ def solve_bytes(image, kind=None):
         text, conf = solve_gst(pil)
     elif kind == "mca":
         text, conf = solve_mca(pil)
+    elif kind == "mca2":
+        text, conf = solve_mca2(pil)
     elif kind == "epfo":
         text, conf = solve_epfo(pil)
     elif kind == "itat":

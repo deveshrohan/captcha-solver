@@ -90,12 +90,12 @@ r = cs.solve_url(CAPTCHA_URL, session=s, submit=submit)
 ## Supported captchas
 
 `cs.KINDS` lists each kind's image size, answer length and gate. Kinds are
-told apart by image size, plus a content test for the three shared sizes
+told apart by image size, plus a content test for the four shared sizes
 (120×40: gstat vs NGT; 200×50: Gujarat HC vs K2, by alpha channel; 200×45:
-CERSAI vs Goa RERA, by ink colour). An
+CERSAI vs Goa RERA, by ink colour; 200×80: old MCA vs mca2, by colour count). An
 unknown size raises `cs.UnsupportedCaptcha` and is never guessed.
 
-securimage (eCourts), gstat, ngt, gst, mca, epfo, kaveri, udyam, itat
+securimage (eCourts), gstat, ngt, gst, mca (before Nov 2026) / mca2 (MCA since Nov 2026), epfo, kaveri, udyam, itat
 (before Oct 2026) / itat2 (ITAT since Oct 2026), bharatkosh, hrmut, mhigr, gujhc / madhc / calhc / karhc (Gujarat, Madras,
 Calcutta and Karnataka High Courts), aphc (Andhra Pradesh HC; the answer is
 the sum the image spells out), dcourts (every `<district>.dcourts.gov.in`

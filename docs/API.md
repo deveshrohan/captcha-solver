@@ -186,7 +186,7 @@ A frozen dataclass. `str(result)` is the text.
 `ngt`, `hrmut`, `mhigr`, `gujhc`, `madhc`, `karhc`, `k2`, `cersai`, `hrrera`, `mcacdm`, `cestat`, `tgrera`) it measures how much of
 the ink the matched glyphs explain, capped by the margin to the next-best
 answer. It falls when the generator changes. For the neural readers
-(`securimage`, `gst`, `mca`, `epfo`, `itat`, `itat2`, `bharatkosh`, `calhc`, `dcourts`, `garera`, `uprera`) it is the
+(`securimage`, `gst`, `mca`, `mca2`, `epfo`, `itat`, `itat2`, `bharatkosh`, `calhc`, `dcourts`, `garera`, `uprera`) it is the
 decoder's per-character probability, and it can be high on a wrong read. Pass
 `submit` for those.
 
@@ -222,7 +222,8 @@ float, "what": str}`.
 | `gstat` | gstat numeric | 120×40 | varies | 0.90 | 1 |
 | `ngt` | National Green Tribunal | 120×40 | 6 | 1.00 | <1 |
 | `gst` | GST portal | 182×50 | 6 | 0.90 | 11 |
-| `mca` | MCA portal | 200×80 | 6 | 0.90 | 24 |
+| `mca` | MCA portal (3-colour format before Nov 2026) | 200×80 | 6 | 0.90 | 24 |
+| `mca2` | MCA portal (format since Nov 2026) | 200×80 | 6 | 0.80 | 15 |
 | `epfo` | EPFO portal | 150×50 | 5 | 0.90 | 13 |
 | `kaveri` | Kaveri (Karnataka registration) | 200×60 | 6 | 0.99 | 4 |
 | `udyam` | Udyam registration | 225×80 | 6 | 0.85 | 101 |

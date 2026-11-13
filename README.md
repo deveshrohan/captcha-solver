@@ -17,7 +17,8 @@ Local, synthetic-trained captcha readers. `solve.py` auto-routes by image size
 | numeric | 120×40 | 6 digits, thin `#ccc` lines | threshold + segment + per-digit CNN | 100% (48/48 digits) |
 | securimage | 215×80 | 6 lowercase-alnum, wavy warp | CRNN+CTC, faithful renderer, length-6 beam | 98.8% exact (81/82) |
 | gst | 182×50 | 6 digits, hatch grid + fisheye | CRNN+CTC on RGB, SimpleCaptcha port | 99.0% exact (97/98), 99.83% digits |
-| mca | 200×80 | 6 mixed-case alnum, line noise | exact ink mask → CRNN+CTC + real fine-tune | 75.0% exact single-shot, ~97% within 3 fetches |
+| mca | 200×80 | 6 mixed-case alnum, line noise (MCA's format **before Nov 2026**) | exact ink mask → CRNN+CTC + real fine-tune | 75.0% exact single-shot, ~97% within 3 fetches |
+| mca2 | 200×80 | 6 of 2-9 + A-Z without `0 1 5 8 I O`, coloured blurred glyphs at random heights, wavy lines over text (MCA's format **since Nov 2026**) | darkness map → 6 fixed slot windows → one shared CNN (synthetic + real) | **59/60 exact (359/360 chars)** held-out; 55/60 above gate, all correct; 6/6 live |
 | epfo | 150×50 | 5 alnum, gradient background | background subtraction → sprite-exact synth → CRNN+CTC | **100% exact (44/44)** |
 | kaveri | 200×60 | 6 uppercase-alnum, lines under text | exact ink mask → sprite cover, **no model** | **210/210 exact and unique** |
 | udyam | 225×80 | 6 uppercase-alnum, lines over text | luminance ink mask → template cover, **no model** | **36/36 exact**, margin > 0 on 2520/2520 glyphs |
@@ -1168,7 +1169,7 @@ code, conf, kind, tries = solve_with_retry(fetch, min_conf=0.90, kind="securimag
 ```
 
 Routing is by native image size: 150×40 → `bharatkosh`, 150×42 → `itat`, 150×50 → `epfo`, 182×50 →
-`gst`, 200×60 → `kaveri`, 200×80 → `mca`, 215×80 → `securimage`, 225×80 →
+`gst`, 200×60 → `kaveri`, 200×80 → `mca` / `mca2` (by colour count), 215×80 → `securimage`, 225×80 →
 `udyam`. The one exception is 120×40, shared by `gstat` and `ngt` and resolved
 by content — gstat's ink is `#333` and never pure black, NGT's is.
 
@@ -1403,6 +1404,47 @@ rejecting the answer, so call `solve_with_retry(fetch, submit)`.
 ```bash
 python3 train_itat2.py 13 && python3 finetune_itat2.py 30
 python3 eval_hc.py itat2
+```
+
+## MCA's November 2026 format (`mca2`)
+
+`www.mca.gov.in/bin/mca/generateCaptchaWithHMAC` switched generators in Nov
+2026 without changing size, so 200×80 is now split by content: the old image is
+exactly three flat colours, the new one ~1700 (measured: old corpus ≤ 3, new ≥
+316 across 398 + 400 images). The old `mca` reader stays for the old format.
+
+Composition: background (242,244,246), a pale rounded border, pale speckle;
+six glyphs, each in one of six palette hues (blue, green, dark green, crimson,
+navy, purple), a DejaVu-Sans-like face in plain/bold/oblique, ~14 px cap
+height, in fixed slots at x ≈ 24 + 30·i (±7 px) at random heights; three wavy
+polylines drawn **over** the text (one can hide a `T`'s whole crossbar); a soft
+blur over everything. Every hue has min(R,G,B) ≈ 50–80, so the darkness map
+`1 − min(R,G,B)/255` weighs all six equally. The census over 237 labels never
+shows `0 1 5 8 I O`; the charset is the other 30.
+
+Reader: glyphs never overlap and sit in fixed slots, so one small CNN classifies
+a 40-px window around each slot (three shifted windows averaged). A CRNN+CTC
+over the same input stayed at the blank-only plateau for 13 epochs; the slot
+classifier reached 24/25 validation after one. Trained on 144k synthetic slot
+windows plus the 152 real train captchas at random ±6 px shifts.
+
+Labels: 237 read by eye; the 60-image test block (n0060–n0119) was labelled
+cold before any model existed. The accessibility WAV is an independent second
+reader: Whisper-small transcribed each test clip, and the one non-sound-alike
+disagreement (n0075, `J` vs `T`) was re-examined and corrected to `T`; n0112's
+`K` was corrected to `Y` after the model and the audio both read `Y` and a zoom
+confirmed it. Both corrections are recorded in `mca2_ambiguous.json`. The WAV
+clips are not byte-identical across instances, so audio is a cross-check, not a
+shortcut.
+
+Result on the pinned test split: **59/60 exact, 359/360 characters**; the miss
+(`K`→`Y`) scored 0.45. Gate 0.80 (validation: 25/25 correct, lowest 0.845)
+accepts 55/60 test reads, all correct. Six fresh live captchas read 6/6.
+
+```bash
+python3 download_mca2.py 400 mca2_raw
+python3 train_mca2.py 12            # selects on validation, scores test once
+python3 eval_mca2.py test
 ```
 
 ### HP RERA document captcha
